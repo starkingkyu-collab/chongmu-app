@@ -244,7 +244,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <div class="modal-overlay" id="modal-add-member" onclick="closeModalOutside(event,this)">
   <div class="modal"><div class="modal-handle"></div><div class="modal-title">회원 추가</div>
     <div class="form-group"><label class="form-label">이름</label><input class="form-input" id="m-name" placeholder="홍길동"></div>
-    <div class="form-group"><label class="form-label">연락처</label><input class="form-input" id="m-phone" placeholder="010-1234-5678" type="tel"></div>
+    <div class="form-group"><label class="form-label">연락처</label><input class="form-input" id="m-phone" placeholder="010-1234-5678" type="tel" oninput="applyPhoneFormat(this)"></div>
     <div class="form-group"><label class="form-label">모임 선택</label><select class="form-select" id="m-group"></select></div>
     <div class="form-group"><label class="form-label">직책</label>
       <select class="form-select" id="m-role"><option>회원</option><option>회장</option><option>부회장</option><option>총무</option><option>감사</option></select>
@@ -260,7 +260,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="modal"><div class="modal-handle"></div><div class="modal-title">회원 수정</div>
     <input type="hidden" id="edit-m-id">
     <div class="form-group"><label class="form-label">이름</label><input class="form-input" id="edit-m-name" placeholder="홍길동"></div>
-    <div class="form-group"><label class="form-label">연락처</label><input class="form-input" id="edit-m-phone" placeholder="010-1234-5678" type="tel"></div>
+    <div class="form-group"><label class="form-label">연락처</label><input class="form-input" id="edit-m-phone" placeholder="010-1234-5678" type="tel" oninput="applyPhoneFormat(this)"></div>
     <div class="form-group"><label class="form-label">모임 선택</label><select class="form-select" id="edit-m-group"></select></div>
     <div class="form-group"><label class="form-label">직책</label>
       <select class="form-select" id="edit-m-role"><option>회원</option><option>회장</option><option>부회장</option><option>총무</option><option>감사</option></select>
@@ -1559,7 +1559,7 @@ function addGroup(){
 }
 function addMember(){
   var name=document.getElementById('m-name').value.trim();
-  var phone=document.getElementById('m-phone').value.trim();
+  var phone=formatPhone(document.getElementById('m-phone').value.trim());
   var gId=document.getElementById('m-group').value;
   var role=document.getElementById('m-role').value;
   var bday=document.getElementById('m-bday').value;
@@ -1586,7 +1586,7 @@ function openEditMember(id){
 function saveEditMember(){
   var id=document.getElementById('edit-m-id').value;
   var name=document.getElementById('edit-m-name').value.trim();
-  var phone=document.getElementById('edit-m-phone').value.trim();
+  var phone=formatPhone(document.getElementById('edit-m-phone').value.trim());
   var groupId=document.getElementById('edit-m-group').value;
   var role=document.getElementById('edit-m-role').value;
   var bday=document.getElementById('edit-m-bday').value;
@@ -1829,6 +1829,28 @@ function closeModalOutside(e,el){if(e.target===el)closeModal(el.id)}
 function fillGroupSelect(selId){
   var sel=document.getElementById(selId);
   sel.innerHTML=groups.map(function(g){return '<option value="'+g.id+'">'+g.name+'</option>'}).join('');
+}
+function formatPhone(val){
+  // 숫자만 추출
+  var num=val.replace(/[^0-9]/g,'');
+  if(!num) return val;
+  // 010-XXXX-XXXX 또는 02-XXX-XXXX 형식 등
+  if(num.startsWith('02')){
+    if(num.length<=5) return num.slice(0,2)+'-'+num.slice(2);
+    if(num.length<=9) return num.slice(0,2)+'-'+num.slice(2,5)+'-'+num.slice(5);
+    return num.slice(0,2)+'-'+num.slice(2,6)+'-'+num.slice(6,10);
+  }
+  if(num.length<=7)  return num.slice(0,3)+'-'+num.slice(3);
+  if(num.length<=10) return num.slice(0,3)+'-'+num.slice(3,6)+'-'+num.slice(6);
+  return num.slice(0,3)+'-'+num.slice(3,7)+'-'+num.slice(7,11);
+}
+function applyPhoneFormat(el){
+  var pos=el.selectionStart;
+  var oldLen=el.value.length;
+  el.value=formatPhone(el.value);
+  // 커서 위치 유지
+  var newLen=el.value.length;
+  el.selectionStart=el.selectionEnd=pos+(newLen-oldLen);
 }
 function showToast(msg){
   var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
