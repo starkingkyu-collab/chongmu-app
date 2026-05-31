@@ -9,11 +9,7 @@
 <title>총무앱</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --navy:#1B3A6B;--sky:#4A90D9;--mint:#1D9E75;--amber:#E8A020;--red:#E53935;--pink:#E91E8C;
-  --bg:#F4F6FA;--card:#fff;--text:#1a1a2e;--text2:#6b7280;--border:#e5e7eb;
-  --radius:14px;--radius-sm:8px;
-}
+:root{--navy:#1B3A6B;--sky:#4A90D9;--mint:#1D9E75;--amber:#E8A020;--red:#E53935;--pink:#E91E8C;--bg:#F4F6FA;--card:#fff;--text:#1a1a2e;--text2:#6b7280;--border:#e5e7eb;--radius:14px;--radius-sm:8px}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;padding-bottom:72px}
 .header{background:var(--navy);color:#fff;padding:48px 20px 20px;position:sticky;top:0;z-index:100}
@@ -22,7 +18,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .header-sub{font-size:13px;opacity:.7;margin-top:2px}
 .header-btn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid var(--border);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
-.tab-btn{flex:1;padding:8px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;cursor:pointer;font-size:9px;color:var(--text2);font-family:'Noto Sans KR',sans-serif;transition:color .2s}
+.tab-btn{flex:1;padding:10px 2px 9px;min-height:54px;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;cursor:pointer;font-size:11px;color:var(--text2);font-family:'Noto Sans KR',sans-serif;transition:color .2s}
 .tab-btn.active{color:var(--navy);font-weight:700}
 .tab-icon{font-size:20px;line-height:1}
 .page{display:none;padding:16px}
@@ -35,13 +31,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .badge-role{background:#EEF2FF;color:#3730a3}
 .badge-plan{background:#FFF8E1;color:#7a5200}
 .badge-done{background:#E1F5EE;color:#085041}
-.badge-group{background:#E8F0FE;color:#1B3A6B;font-size:10px;padding:2px 7px}
-.badge-bday{background:#FCE4EC;color:#880E4F;font-size:10px;padding:2px 7px}
+.badge-group{background:#E8F0FE;color:#1B3A6B;font-size:11px;padding:2px 7px}
+.badge-bday{background:#FCE4EC;color:#880E4F;font-size:11px;padding:2px 7px}
 .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .summary-card{background:rgba(255,255,255,.12);border-radius:var(--radius-sm);padding:12px}
 .summary-val{font-size:26px;font-weight:700;color:#fff;line-height:1}
 .summary-label{font-size:11px;color:rgba(255,255,255,.75);margin-top:3px}
-.progress-info{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
 .progress-bar{height:7px;border-radius:4px;background:var(--border);overflow:hidden}
 .progress-fill{height:100%;border-radius:4px;background:var(--mint);transition:width .4s}
 .member-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
@@ -53,16 +48,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .member-info{flex:1;min-width:0}
 .member-name{font-size:14px;font-weight:700}
 .member-sub{font-size:12px;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.event-row{display:flex;gap:12px;align-items:flex-start}
 .event-date-box{background:var(--navy);color:#fff;border-radius:var(--radius-sm);padding:6px 8px;text-align:center;min-width:42px;flex-shrink:0}
 .event-day{font-size:20px;font-weight:700;line-height:1}
-.event-month{font-size:10px;opacity:.8}
-.event-info{flex:1}
-.event-name{font-size:14px;font-weight:700}
-.event-detail{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.5}
-.dues-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
-.dues-row:last-child{border-bottom:none}
-.dues-amount{font-size:14px;font-weight:700;text-align:right}
+.event-month{font-size:11px;opacity:.8}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 20px 40px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;animation:slideUp .25s ease}
@@ -71,28 +59,24 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .modal-title{font-size:17px;font-weight:700;margin-bottom:16px}
 .form-group{margin-bottom:14px}
 .form-label{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block}
-.form-input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:'Noto Sans KR',sans-serif;background:#fff;color:var(--text);outline:none;transition:border-color .2s}
+.form-input{width:100%;padding:12px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-family:'Noto Sans KR',sans-serif;background:#fff;color:var(--text);outline:none;transition:border-color .2s}
 .form-input:focus{border-color:var(--sky)}
-.form-select{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:'Noto Sans KR',sans-serif;background:#fff;color:var(--text);outline:none}
+.form-select{width:100%;padding:12px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-family:'Noto Sans KR',sans-serif;background:#fff;color:var(--text);outline:none}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn-primary{width:100%;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:4px}
 .btn-secondary{width:100%;padding:12px;background:var(--bg);color:var(--navy);border:1.5px solid var(--navy);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:8px}
 .btn-danger{background:#FFEBEE;color:var(--red);border:none;border-radius:var(--radius-sm);padding:8px 14px;font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
 .fab{position:fixed;bottom:84px;right:calc(50% - 200px);width:52px;height:52px;border-radius:50%;background:var(--navy);color:#fff;border:none;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(27,58,107,.35);z-index:150;transition:transform .15s}
 .fab:active{transform:scale(.92)}
-.chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
-.chip{font-size:12px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;color:var(--text2);background:#fff;white-space:nowrap;font-family:'Noto Sans KR',sans-serif;font-weight:500;transition:all .15s}
+.chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.chip{font-size:12px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;color:var(--text2);background:#fff;white-space:nowrap;font-family:'Noto Sans KR',sans-serif;font-weight:500}
 .chip.sel{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:#1a1a2e;color:#fff;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text2)}
-.empty-state .empty-icon{font-size:40px;margin-bottom:8px}
-.empty-state p{font-size:14px}
+.empty-icon{font-size:40px;margin-bottom:8px}
 .alert-box{background:#FFF3E0;border-left:4px solid var(--amber);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:10px;font-size:13px;color:#7a5200}
-/* 생일 카드 */
 .bday-card{background:linear-gradient(135deg,#FCE4EC,#F8BBD0);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;border:1px solid #F48FB1}
-.bday-row{display:flex;align-items:center;gap:10px}
-/* 결산 */
 .settle-header{background:var(--navy);color:#fff;border-radius:var(--radius);padding:16px;margin-bottom:12px}
 .settle-big{font-size:28px;font-weight:700;margin:4px 0}
 .settle-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px}
@@ -101,9 +85,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .expense-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
 .expense-row:last-child{border-bottom:none}
 .copy-box{background:#F8F9FA;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:13px;line-height:1.8;white-space:pre-wrap;word-break:break-all;color:var(--text);margin-bottom:10px}
-.tab-settle{display:flex;gap:0;border:1.5px solid var(--navy);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:14px}
+.tab-settle{display:flex;border:1.5px solid var(--navy);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:14px}
 .tab-settle button{flex:1;padding:9px 4px;border:none;background:#fff;font-size:13px;font-weight:500;font-family:'Noto Sans KR',sans-serif;cursor:pointer;color:var(--text2)}
 .tab-settle button.active{background:var(--navy);color:#fff;font-weight:700}
+.unpaid-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.unpaid-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -120,57 +106,33 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
   <div style="padding:16px">
     <div id="home-bday-alert"></div>
-    <div class="section-label">회비 수금 현황</div>
-    <div id="home-dues-summary"></div>
-    <div class="section-label">다가오는 일정</div>
-    <div id="home-events"></div>
-    <div class="section-label">미납 회원</div>
-    <div id="home-unpaid"></div>
+    <div class="section-label">회비 수금 현황</div><div id="home-dues-summary"></div>
+    <div class="section-label">다가오는 일정</div><div id="home-events"></div>
+    <div class="section-label">미납 회원</div><div id="home-unpaid"></div>
   </div>
 </div>
 
 <!-- 회원 -->
 <div class="page" id="page-members">
-  <div class="header">
-    <h1>👥 회원 명단</h1>
-    <div class="header-sub" id="member-count-label" style="margin-top:4px"></div>
-  </div>
-  <div style="padding:16px">
-    <div class="chip-row" id="member-group-chips"></div>
-    <div id="member-list"></div>
-  </div>
+  <div class="header"><h1>👥 회원 명단</h1><div class="header-sub" id="member-count-label" style="margin-top:4px"></div></div>
+  <div style="padding:16px"><div class="chip-row" id="member-group-chips"></div><div id="member-list"></div></div>
 </div>
 
 <!-- 회비 -->
 <div class="page" id="page-dues">
-  <div class="header">
-    <h1>💰 회비 관리</h1>
-    <div class="header-sub" id="dues-month-label" style="margin-top:4px"></div>
-  </div>
-  <div style="padding:16px">
-    <div class="chip-row" id="dues-group-chips"></div>
-    <div id="dues-list"></div>
-  </div>
+  <div class="header"><h1>💰 회비 관리</h1><div class="header-sub" id="dues-month-label" style="margin-top:4px"></div></div>
+  <div style="padding:16px"><div class="chip-row" id="dues-group-chips"></div><div id="dues-list"></div></div>
 </div>
 
 <!-- 일정 -->
 <div class="page" id="page-schedule">
-  <div class="header">
-    <h1>📅 모임 일정</h1>
-    <div class="header-sub" style="margin-top:4px">일정을 등록하고 관리하세요</div>
-  </div>
-  <div style="padding:16px">
-    <div class="chip-row" id="sched-group-chips"></div>
-    <div id="schedule-list"></div>
-  </div>
+  <div class="header"><h1>📅 모임 일정</h1><div class="header-sub" style="margin-top:4px">일정을 등록하고 관리하세요</div></div>
+  <div style="padding:16px"><div class="chip-row" id="sched-group-chips"></div><div id="schedule-list"></div></div>
 </div>
 
-<!-- 🎉 기념일 페이지 -->
+<!-- 기념일 -->
 <div class="page" id="page-birthday">
-  <div class="header">
-    <h1>🎉 기념일 관리</h1>
-    <div class="header-sub" style="margin-top:4px">생일 · 창립일 · 주요 기념일</div>
-  </div>
+  <div class="header"><h1>🎉 기념일 관리</h1><div class="header-sub" style="margin-top:4px">생일 · 창립일 · 주요 기념일</div></div>
   <div style="padding:16px">
     <div id="bday-this-month"></div>
     <div id="bday-next-month"></div>
@@ -179,82 +141,155 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
 </div>
 
-<!-- 📊 결산 페이지 -->
+<!-- 결산 -->
 <div class="page" id="page-settle">
-  <div class="header">
-    <h1>📊 월별 결산</h1>
-    <div class="header-sub" style="margin-top:4px">수입·지출 결산 및 공지 생성</div>
-  </div>
+  <div class="header"><h1>📊 월별 결산</h1><div class="header-sub" style="margin-top:4px">수입·지출 결산 및 공지 생성</div></div>
   <div style="padding:16px">
     <div class="form-row" style="margin-bottom:12px">
-      <div>
-        <div class="form-label">모임 선택</div>
-        <select class="form-select" id="settle-group" onchange="renderSettle()"></select>
-      </div>
-      <div>
-        <div class="form-label">월 선택</div>
-        <input class="form-input" type="month" id="settle-month" onchange="renderSettle()">
-      </div>
+      <div><div class="form-label">모임 선택</div><select class="form-select" id="settle-group" onchange="renderSettle()"></select></div>
+      <div><div class="form-label">월 선택</div><input class="form-input" type="month" id="settle-month" onchange="renderSettle()"></div>
     </div>
     <div class="tab-settle">
       <button class="active" onclick="setSettleTab('summary',this)">요약</button>
-      <button onclick="setSettleTab('expense',this)">지출 내역</button>
+      <button onclick="setSettleTab('expense',this)">수입·지출</button>
       <button onclick="setSettleTab('notice',this)">공지 생성</button>
     </div>
     <div id="settle-content"></div>
   </div>
 </div>
 
-<!-- ⚙️ 모임 관리 페이지 -->
+<!-- 모임관리 -->
 <div class="page" id="page-groups">
-  <div class="header">
-    <h1>⚙️ 모임 관리</h1>
-    <div class="header-sub" style="margin-top:4px">모임 추가 · 이름수정 · 삭제</div>
-  </div>
+  <div class="header"><h1>⚙️ 모임 관리</h1><div class="header-sub" style="margin-top:4px">모임 추가 · 수정 · 삭제</div></div>
   <div style="padding:16px">
     <button onclick="openModal('modal-backup')" style="width:100%;padding:13px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px">💾 데이터 백업 / 복원</button>
     <div id="groups-list"></div>
   </div>
 </div>
 
-<!-- 모달: 모임 수정 -->
+<!-- 탭바 -->
+<div class="tabbar">
+  <button class="tab-btn active" data-page="home" onclick="showPage('home')"><span class="tab-icon">🏠</span>홈</button>
+  <button class="tab-btn" data-page="members" onclick="showPage('members')"><span class="tab-icon">👥</span>회원</button>
+  <button class="tab-btn" data-page="dues" onclick="showPage('dues')"><span class="tab-icon">💰</span>회비</button>
+  <button class="tab-btn" data-page="schedule" onclick="showPage('schedule')"><span class="tab-icon">📅</span>일정</button>
+  <button class="tab-btn" data-page="birthday" onclick="showPage('birthday')"><span class="tab-icon">🎉</span>기념일</button>
+  <button class="tab-btn" data-page="settle" onclick="showPage('settle')"><span class="tab-icon">📊</span>결산</button>
+  <button class="tab-btn" data-page="groups" onclick="showPage('groups')"><span class="tab-icon">⚙️</span>모임</button>
+</div>
+<button class="fab" onclick="handleFab()">＋</button>
+
+<!-- 모달: 모임추가 -->
+<div class="modal-overlay" id="modal-add-group" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">모임 추가</div>
+    <div class="form-group"><label class="form-label">모임 이름</label><input class="form-input" id="g-name" placeholder="예) 항공친목회"></div>
+    <div class="form-group"><label class="form-label">월 회비 (원)</label><input class="form-input" id="g-dues" type="number" placeholder="예) 30000"></div>
+    <div class="form-group"><label class="form-label">설명 (선택)</label><input class="form-input" id="g-desc" placeholder="예) 육군 항공 준위 친목모임"></div>
+    <button class="btn-primary" onclick="addGroup()">모임 추가</button>
+    <button class="btn-secondary" onclick="closeModal('modal-add-group')">취소</button>
+  </div>
+</div>
+
+<!-- 모달: 모임수정 -->
 <div class="modal-overlay" id="modal-edit-group" onclick="closeModalOutside(event,this)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">모임 수정</div>
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">모임 수정</div>
     <input type="hidden" id="edit-g-id">
-    <div class="form-group"><label class="form-label">모임 이름</label><input class="form-input" id="edit-g-name" placeholder="예) 항공친목회"></div>
-    <div class="form-group"><label class="form-label">월 회비 (원)</label><input class="form-input" id="edit-g-dues" type="number" placeholder="예) 30000"></div>
-    <div class="form-group"><label class="form-label">모임 설명 (선택)</label><input class="form-input" id="edit-g-desc" placeholder="예) 육군 항공 준위 친목모임"></div>
+    <div class="form-group"><label class="form-label">모임 이름</label><input class="form-input" id="edit-g-name"></div>
+    <div class="form-group"><label class="form-label">월 회비 (원)</label><input class="form-input" id="edit-g-dues" type="number"></div>
+    <div class="form-group"><label class="form-label">설명 (선택)</label><input class="form-input" id="edit-g-desc"></div>
     <button class="btn-primary" onclick="saveEditGroup()">저장</button>
     <button class="btn-secondary" onclick="closeModal('modal-edit-group')">취소</button>
   </div>
 </div>
 
-<!-- 모달: 기념일 추가 -->
+<!-- 모달: 회원추가 -->
+<div class="modal-overlay" id="modal-add-member" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">회원 추가</div>
+    <div class="form-group"><label class="form-label">이름</label><input class="form-input" id="m-name" placeholder="홍길동"></div>
+    <div class="form-group"><label class="form-label">연락처</label><input class="form-input" id="m-phone" placeholder="010-1234-5678" type="tel"></div>
+    <div class="form-group"><label class="form-label">모임 선택</label><select class="form-select" id="m-group"></select></div>
+    <div class="form-group"><label class="form-label">직책</label>
+      <select class="form-select" id="m-role"><option>회원</option><option>회장</option><option>부회장</option><option>총무</option><option>감사</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">🎂 생년월일 (선택)</label><input class="form-input" id="m-bday" type="date"></div>
+    <button class="btn-primary" onclick="addMember()">회원 추가</button>
+    <button class="btn-secondary" onclick="closeModal('modal-add-member')">취소</button>
+  </div>
+</div>
+
+<!-- 모달: 일정추가 -->
+<div class="modal-overlay" id="modal-add-event" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">일정 추가</div>
+    <div class="form-group"><label class="form-label">모임 선택</label><select class="form-select" id="e-group"></select></div>
+    <div class="form-group"><label class="form-label">제목</label><input class="form-input" id="e-title" placeholder="예) 6월 정기모임"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="e-date" type="date"></div>
+      <div class="form-group"><label class="form-label">시간</label><input class="form-input" id="e-time" type="time"></div>
+    </div>
+    <div class="form-group"><label class="form-label">장소</label><input class="form-input" id="e-place" placeholder="예) 대구 달서구 OO식당"></div>
+    <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="e-memo"></div>
+    <button class="btn-primary" onclick="addEvent()">일정 추가</button>
+    <button class="btn-secondary" onclick="closeModal('modal-add-event')">취소</button>
+  </div>
+</div>
+
+<!-- 모달: 지출추가 -->
+<div class="modal-overlay" id="modal-add-expense" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">💸 지출 추가</div>
+    <div class="form-group"><label class="form-label">모임</label><select class="form-select" id="ex-group"></select></div>
+    <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="ex-date" type="date"></div>
+    <div class="form-group"><label class="form-label">항목</label><input class="form-input" id="ex-title" placeholder="예) 식사비, 경조사비, 비품"></div>
+    <div class="form-group"><label class="form-label">금액 (원)</label><input class="form-input" id="ex-amount" type="number" placeholder="예) 150000"></div>
+    <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="ex-memo"></div>
+    <button class="btn-primary" onclick="addExpense()">지출 추가</button>
+    <button class="btn-secondary" onclick="closeModal('modal-add-expense')">취소</button>
+  </div>
+</div>
+
+<!-- 모달: 수입추가 -->
+<div class="modal-overlay" id="modal-add-income" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">💵 기타 수입 추가</div>
+    <div class="form-group"><label class="form-label">모임</label><select class="form-select" id="in-group"></select></div>
+    <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="in-date" type="date"></div>
+    <div class="form-group"><label class="form-label">항목</label><input class="form-input" id="in-title" placeholder="예) 이자수입, 찬조금, 벌금"></div>
+    <div class="form-group"><label class="form-label">금액 (원)</label><input class="form-input" id="in-amount" type="number" placeholder="예) 5000"></div>
+    <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="in-memo"></div>
+    <button class="btn-primary" onclick="addIncome()">수입 추가</button>
+    <button class="btn-secondary" onclick="closeModal('modal-add-income')">취소</button>
+  </div>
+</div>
+
+<!-- 모달: 기념일추가 -->
 <div class="modal-overlay" id="modal-add-anniv" onclick="closeModalOutside(event,this)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">기념일 추가</div>
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">기념일 추가</div>
     <div class="form-group"><label class="form-label">모임 선택</label><select class="form-select" id="an-group"></select></div>
     <div class="form-group"><label class="form-label">기념일 이름</label><input class="form-input" id="an-title" placeholder="예) 창립기념일, 체육대회"></div>
-    <div class="form-group">
-      <label class="form-label">날짜 (MM-DD 형식으로 입력 · 매년 반복)</label>
-      <input class="form-input" id="an-date" placeholder="예) 06-15" maxlength="5" pattern="\d{2}-\d{2}">
-    </div>
+    <div class="form-group"><label class="form-label">날짜 (MM-DD 형식, 매년 반복)</label><input class="form-input" id="an-date" placeholder="예) 06-15" maxlength="5"></div>
     <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="an-memo" placeholder="예) 창립 5주년"></div>
     <button class="btn-primary" onclick="addAnniv()">기념일 추가</button>
     <button class="btn-secondary" onclick="closeModal('modal-add-anniv')">취소</button>
   </div>
 </div>
 
-<!-- 모달: 백업/복원 -->
+<!-- 모달: 납부처리 -->
+<div class="modal-overlay" id="modal-pay-dues" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div>
+    <div class="modal-title" id="pay-modal-title">회비 납부 처리</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:16px" id="pay-modal-sub"></div>
+    <div class="form-group"><label class="form-label">납부 방법</label>
+      <select class="form-select" id="pay-method"><option>계좌이체</option><option>카카오페이</option><option>현금</option><option>토스</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">납부일</label><input class="form-input" id="pay-date" type="date"></div>
+    <button class="btn-primary" onclick="confirmPay()">납부 완료 처리</button>
+    <button class="btn-secondary" onclick="closeModal('modal-pay-dues')">취소</button>
+  </div>
+</div>
+
+<!-- 모달: 백업 -->
 <div class="modal-overlay" id="modal-backup" onclick="closeModalOutside(event,this)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">💾 데이터 백업 / 복원</div>
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">💾 데이터 백업 / 복원</div>
     <div style="background:#E8F0FE;border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:13px;color:#1B3A6B;line-height:1.7">
-      📱 스마트폰을 바꾸거나 앱을 새로 받을 때<br>백업 파일로 데이터를 그대로 옮길 수 있어요.
+      📱 폰을 바꾸거나 앱을 새로 받을 때 백업 파일로 데이터를 그대로 옮길 수 있어요.
     </div>
     <div class="form-group">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px">📤 내보내기 (백업)</div>
@@ -271,182 +306,90 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
 </div>
 
-<!-- 탭바 (7개) -->
-<div class="tabbar">
-  <button class="tab-btn active" onclick="showPage('home')" data-page="home"><span class="tab-icon">🏠</span>홈</button>
-  <button class="tab-btn" onclick="showPage('members')" data-page="members"><span class="tab-icon">👥</span>회원</button>
-  <button class="tab-btn" onclick="showPage('dues')" data-page="dues"><span class="tab-icon">💰</span>회비</button>
-  <button class="tab-btn" onclick="showPage('schedule')" data-page="schedule"><span class="tab-icon">📅</span>일정</button>
-  <button class="tab-btn" onclick="showPage('birthday')" data-page="birthday"><span class="tab-icon">🎉</span>기념일</button>
-  <button class="tab-btn" onclick="showPage('settle')" data-page="settle"><span class="tab-icon">📊</span>결산</button>
-  <button class="tab-btn" onclick="showPage('groups')" data-page="groups"><span class="tab-icon">⚙️</span>모임</button>
-</div>
-
-<button class="fab" id="fab-btn" onclick="handleFab()">＋</button>
-
-<!-- 모달: 모임 추가 -->
-<div class="modal-overlay" id="modal-add-group" onclick="closeModalOutside(event,this)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">모임 추가</div>
-    <div class="form-group"><label class="form-label">모임 이름</label><input class="form-input" id="g-name" placeholder="예) 항공친목회"></div>
-    <div class="form-group"><label class="form-label">월 회비 (원)</label><input class="form-input" id="g-dues" type="number" placeholder="예) 30000"></div>
-    <div class="form-group"><label class="form-label">모임 설명 (선택)</label><input class="form-input" id="g-desc" placeholder="예) 육군 항공 준위 친목모임"></div>
-    <button class="btn-primary" onclick="addGroup()">모임 추가</button>
-    <button class="btn-secondary" onclick="closeModal('modal-add-group')">취소</button>
-  </div>
-</div>
-
-<!-- 모달: 회원 추가 -->
-<div class="modal-overlay" id="modal-add-member" onclick="closeModalOutside(event,this)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">회원 추가</div>
-    <div class="form-group"><label class="form-label">이름</label><input class="form-input" id="m-name" placeholder="홍길동"></div>
-    <div class="form-group"><label class="form-label">연락처</label><input class="form-input" id="m-phone" placeholder="010-1234-5678" type="tel"></div>
-    <div class="form-group"><label class="form-label">모임 선택</label><select class="form-select" id="m-group"></select></div>
-    <div class="form-group"><label class="form-label">직책</label>
-      <select class="form-select" id="m-role">
-        <option>회원</option><option>회장</option><option>부회장</option><option>총무</option><option>감사</option>
-      </select>
-    </div>
-    <div class="form-group"><label class="form-label">🎂 생년월일 (선택 — 생일 알림용)</label><input class="form-input" id="m-bday" type="date"></div>
-    <button class="btn-primary" onclick="addMember()">회원 추가</button>
-    <button class="btn-secondary" onclick="closeModal('modal-add-member')">취소</button>
-  </div>
-</div>
-
-<!-- 모달: 일정 추가 -->
-<div class="modal-overlay" id="modal-add-event" onclick="closeModalOutside(event,this)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">일정 추가</div>
-    <div class="form-group"><label class="form-label">모임 선택</label><select class="form-select" id="e-group"></select></div>
-    <div class="form-group"><label class="form-label">제목</label><input class="form-input" id="e-title" placeholder="예) 6월 정기모임"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="e-date" type="date"></div>
-      <div class="form-group"><label class="form-label">시간</label><input class="form-input" id="e-time" type="time"></div>
-    </div>
-    <div class="form-group"><label class="form-label">장소</label><input class="form-input" id="e-place" placeholder="예) 대구 달서구 OO식당"></div>
-    <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="e-memo" placeholder="예) 회비 수금 예정"></div>
-    <button class="btn-primary" onclick="addEvent()">일정 추가</button>
-    <button class="btn-secondary" onclick="closeModal('modal-add-event')">취소</button>
-  </div>
-</div>
-
-<!-- 모달: 지출 추가 -->
-<div class="modal-overlay" id="modal-add-expense" onclick="closeModalOutside(event,this)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">지출 내역 추가</div>
-    <div class="form-group"><label class="form-label">모임</label><select class="form-select" id="ex-group"></select></div>
-    <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="ex-date" type="date"></div>
-    <div class="form-group"><label class="form-label">항목</label><input class="form-input" id="ex-title" placeholder="예) 식사비, 회의실 대여, 경조사 등"></div>
-    <div class="form-group"><label class="form-label">금액 (원)</label><input class="form-input" id="ex-amount" type="number" placeholder="예) 150000"></div>
-    <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="ex-memo" placeholder="예) 6월 정기모임 식사"></div>
-    <button class="btn-primary" onclick="addExpense()">지출 추가</button>
-    <button class="btn-secondary" onclick="closeModal('modal-add-expense')">취소</button>
-  </div>
-</div>
-
-<!-- 모달: 납부 처리 -->
-<div class="modal-overlay" id="modal-pay-dues" onclick="closeModalOutside(event,this)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="pay-modal-title">회비 납부 처리</div>
-    <div style="font-size:14px;color:var(--text2);margin-bottom:16px" id="pay-modal-sub"></div>
-    <div class="form-group"><label class="form-label">납부 방법</label>
-      <select class="form-select" id="pay-method"><option>계좌이체</option><option>카카오페이</option><option>현금</option><option>토스</option></select>
-    </div>
-    <div class="form-group"><label class="form-label">납부일</label><input class="form-input" id="pay-date" type="date"></div>
-    <button class="btn-primary" onclick="confirmPay()">납부 완료 처리</button>
-    <button class="btn-secondary" onclick="closeModal('modal-pay-dues')">취소</button>
-  </div>
-</div>
-
 <script>
-// ── 저장소 ──────────────────────────────
+// ── 저장소 ──
 function load(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
 function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
-let groups   = load('groups')   || [];
-let members  = load('members')  || [];
-let events   = load('events')   || [];
-let dues     = load('dues')     || {};
-let expenses = load('expenses') || []; // [{id,groupId,date,title,amount,memo}]
+var groups   = load('groups')   || [];
+var members  = load('members')  || [];
+var events   = load('events')   || [];
+var dues     = load('dues')     || {};
+var expenses = load('expenses') || [];
+var incomes  = load('incomes')  || [];
+var anniversaries = load('anniversaries') || [];
 
-function saveAll(){save('groups',groups);save('members',members);save('events',events);save('dues',dues);save('expenses',expenses);save('anniversaries',anniversaries)}
-function thisYM(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function saveAll(){
+  save('groups',groups);save('members',members);save('events',events);
+  save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);
+}
+function thisYM(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function prevYM(){var d=new Date();d.setMonth(d.getMonth()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function uid(){return 'id'+Date.now()+Math.random().toString(36).slice(2,6)}
-const avColors=['a','b','c','d','e'];
+var avColors=['a','b','c','d','e'];
 
 // 샘플 데이터
 if(!groups.length){
   groups=[
     {id:'g1',name:'항공친목회',dues:30000,desc:'육군 항공 준위 친목모임'},
-    {id:'g2',name:'조종사모임',dues:30000,desc:'조종사 친목모임'},
+    {id:'g2',name:'조종사모임',dues:30000,desc:''},
     {id:'g3',name:'지역동호회',dues:20000,desc:''},
-    {id:'g4',name:'동기모임',  dues:50000,desc:''},
+    {id:'g4',name:'동기모임',dues:50000,desc:''}
   ];
-  const today=new Date();
-  const thisM=today.getMonth()+1;
-  const nextM=thisM===12?1:thisM+1;
-  const yr=today.getFullYear();
+  var d=new Date(), thisM=d.getMonth()+1, nextM=thisM===12?1:thisM+1, yr=d.getFullYear();
   members=[
-    {id:'m1',name:'홍길동',phone:'010-1234-5678',groupId:'g1',role:'회장', av:'a',bday:`${yr-44}-${String(thisM).padStart(2,'0')}-15`},
-    {id:'m2',name:'김철수',phone:'010-2345-6789',groupId:'g1',role:'부회장',av:'b',bday:`${yr-40}-${String(thisM).padStart(2,'0')}-28`},
-    {id:'m3',name:'이영희',phone:'010-3456-7890',groupId:'g1',role:'회원', av:'c',bday:`${yr-38}-${String(nextM).padStart(2,'0')}-05`},
-    {id:'m4',name:'박민준',phone:'010-4567-8901',groupId:'g2',role:'회장', av:'d',bday:'1990-03-14'},
-    {id:'m5',name:'최수진',phone:'010-5678-9012',groupId:'g2',role:'회원', av:'e',bday:'1988-07-22'},
-    {id:'m6',name:'정우성',phone:'010-6789-0123',groupId:'g3',role:'회원', av:'a',bday:'1985-09-01'},
-    {id:'m7',name:'강지원',phone:'010-7890-1234',groupId:'g4',role:'총무', av:'b',bday:'1992-11-17'},
+    {id:'m1',name:'홍길동',phone:'010-1234-5678',groupId:'g1',role:'회장',av:'a',bday:yr+'-'+String(thisM).padStart(2,'0')+'-15'},
+    {id:'m2',name:'김철수',phone:'010-2345-6789',groupId:'g1',role:'부회장',av:'b',bday:yr+'-'+String(thisM).padStart(2,'0')+'-28'},
+    {id:'m3',name:'이영희',phone:'010-3456-7890',groupId:'g1',role:'회원',av:'c',bday:yr+'-'+String(nextM).padStart(2,'0')+'-05'},
+    {id:'m4',name:'박민준',phone:'010-4567-8901',groupId:'g2',role:'회장',av:'d',bday:'1990-03-14'},
+    {id:'m5',name:'최수진',phone:'010-5678-9012',groupId:'g2',role:'회원',av:'e',bday:'1988-07-22'},
+    {id:'m6',name:'정우성',phone:'010-6789-0123',groupId:'g3',role:'회원',av:'a',bday:'1985-09-01'},
+    {id:'m7',name:'강지원',phone:'010-7890-1234',groupId:'g4',role:'총무',av:'b',bday:'1992-11-17'}
   ];
-  const ym=thisYM();
+  var ym=thisYM(), ymp=prevYM();
   dues['m1_'+ym]={paid:true,method:'계좌이체',date:ym+'-03'};
   dues['m3_'+ym]={paid:true,method:'카카오페이',date:ym+'-05'};
   dues['m4_'+ym]={paid:true,method:'현금',date:ym+'-10'};
   dues['m5_'+ym]={paid:true,method:'계좌이체',date:ym+'-04'};
   dues['m6_'+ym]={paid:true,method:'토스',date:ym+'-07'};
-  const ymPrev=prevYM();
-  ['m1','m2','m3','m4','m5','m6','m7'].forEach(id=>{dues[id+'_'+ymPrev]={paid:true,method:'계좌이체',date:ymPrev+'-05'}});
+  ['m1','m2','m3','m4','m5','m6','m7'].forEach(function(id){dues[id+'_'+ymp]={paid:true,method:'계좌이체',date:ymp+'-05'}});
   expenses=[
-    {id:'e1',groupId:'g1',date:ym+'-07',title:'6월 정기모임 식사비',amount:180000,memo:'12명'},
-    {id:'e2',groupId:'g1',date:ym+'-15',title:'경조사비 (김OO 결혼)',amount:50000,memo:''},
-    {id:'e3',groupId:'g2',date:ym+'-10',title:'5월 번개 카페',amount:45000,memo:''},
+    {id:'e1',groupId:'g1',date:ym+'-07',title:'정기모임 식사비',amount:180000,memo:'12명'},
+    {id:'e2',groupId:'g1',date:ym+'-15',title:'경조사비',amount:50000,memo:''}
   ];
-  const ymP=prevYM();
-  expenses.push(
-    {id:'e4',groupId:'g1',date:ymP+'-08',title:'5월 정기모임 식사비',amount:160000,memo:''},
-    {id:'e5',groupId:'g1',date:ymP+'-20',title:'비품 구매',amount:30000,memo:''}
-  );
+  incomes=[
+    {id:'i1',groupId:'g1',date:ym+'-01',title:'이자수입',amount:3500,memo:'정기예금'}
+  ];
+  anniversaries=[
+    {id:'a1',groupId:'g1',title:'항공친목회 창립기념일',date:'--03-15',memo:'창립 5주년'},
+    {id:'a2',groupId:'g2',title:'조종사모임 창립기념일',date:'--06-20',memo:''}
+  ];
+  events=[
+    {id:'ev1',groupId:'g1',title:'항공친목회 정기모임',date:ym+'-07',time:'18:00',place:'대구 달서구 OO식당',memo:'회비 수금',done:false},
+    {id:'ev2',groupId:'g2',title:'조종사모임 번개',date:ym+'-14',time:'15:00',place:'동성로 OO카페',memo:'',done:false}
+  ];
   saveAll();
 }
 
-function prevYM(){const d=new Date();d.setMonth(d.getMonth()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
-
-// ── 탭 전환 ──────────────────────────────
-let curPage='home';
+// ── 탭 전환 ──
+var curPage='home';
 function showPage(name){
   curPage=name;
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  const page=document.getElementById('page-'+name);
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
+  var page=document.getElementById('page-'+name);
   if(page) page.classList.add('active');
-  const activeBtn=document.querySelector('.tab-btn[data-page="'+name+'"]');
-  if(activeBtn) activeBtn.classList.add('active');
+  var btn=document.querySelector('.tab-btn[data-page="'+name+'"]');
+  if(btn) btn.classList.add('active');
   renderAll();
 }
 function handleFab(){
-  if(curPage==='members'){fillGroupSelect('m-group');openModal('modal-add-member')}
-  else if(curPage==='dues'){fillGroupSelect('m-group');openModal('modal-add-member')}
+  if(curPage==='members'||curPage==='dues'||curPage==='birthday'){fillGroupSelect('m-group');openModal('modal-add-member')}
   else if(curPage==='schedule'){fillGroupSelect('e-group');document.getElementById('e-date').value=new Date().toISOString().slice(0,10);openModal('modal-add-event')}
   else if(curPage==='settle'){fillGroupSelect('ex-group');document.getElementById('ex-date').value=new Date().toISOString().slice(0,10);openModal('modal-add-expense')}
-  else if(curPage==='birthday'){fillGroupSelect('m-group');openModal('modal-add-member')}
-  else if(curPage==='groups') openModal('modal-add-group')
-  else openModal('modal-add-group');
+  else if(curPage==='groups'){openModal('modal-add-group')}
+  else{openModal('modal-add-group')}
 }
-
-// ── 전체 렌더 ──────────────────────────────
 function renderAll(){
   if(curPage==='home')     renderHome();
   if(curPage==='members')  renderMembers();
@@ -457,60 +400,63 @@ function renderAll(){
   if(curPage==='groups')   renderGroups();
 }
 
-// ── 홈 ──────────────────────────────────
+// ── 홈 ──
 function renderHome(){
-  const ym=thisYM();
-  const d=new Date();
+  var ym=thisYM(), d=new Date();
   document.getElementById('today-date').textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';
-  const totalM=members.length;
-  const paidM=members.filter(m=>dues[m.id+'_'+ym]?.paid).length;
-  document.getElementById('home-summary').innerHTML=`
-    <div class="summary-card"><div class="summary-val">${totalM}명</div><div class="summary-label">전체 회원 (${groups.length}개 모임)</div></div>
-    <div class="summary-card"><div class="summary-val">${paidM}/${totalM}</div><div class="summary-label">${ym} 회비 납부</div></div>`;
+  var totalM=members.length;
+  var paidM=members.filter(function(m){return dues[m.id+'_'+ym]&&dues[m.id+'_'+ym].paid}).length;
+  document.getElementById('home-summary').innerHTML=
+    '<div class="summary-card"><div class="summary-val">'+totalM+'명</div><div class="summary-label">전체 회원 ('+groups.length+'개 모임)</div></div>'+
+    '<div class="summary-card"><div class="summary-val">'+paidM+'/'+totalM+'</div><div class="summary-label">'+ym+' 회비 납부</div></div>';
 
   // 생일 알림
-  const bdayAlert=getBdayAlert();
-  document.getElementById('home-bday-alert').innerHTML=bdayAlert;
+  var bAlert=getBdayAlert();
+  document.getElementById('home-bday-alert').innerHTML=bAlert;
 
-  // 모임별 회비
-  let dh='';
-  groups.forEach(g=>{
-    const gm=members.filter(m=>m.groupId===g.id);
-    if(!gm.length)return;
-    const paid=gm.filter(m=>dues[m.id+'_'+ym]?.paid).length;
-    const pct=Math.round(paid/gm.length*100);
-    dh+=`<div class="card">
-      <div class="progress-info"><span style="font-weight:700;font-size:14px">${g.name}</span><span style="font-size:13px;color:var(--text2)">${paid}/${gm.length}명 · ${(paid*g.dues).toLocaleString()}원</span></div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      ${pct<100?`<div style="font-size:12px;color:var(--red);margin-top:6px">미납: ${gm.filter(m=>!dues[m.id+'_'+ym]?.paid).map(m=>m.name).join(', ')}</div>`:`<div style="font-size:12px;color:var(--mint);margin-top:6px">✅ 전원 납부 완료</div>`}
-    </div>`;
+  // 모임별 회비현황
+  var dh='';
+  groups.forEach(function(g){
+    var gm=members.filter(function(m){return m.groupId===g.id});
+    if(!gm.length) return;
+    var paid=gm.filter(function(m){return dues[m.id+'_'+ym]&&dues[m.id+'_'+ym].paid}).length;
+    var pct=Math.round(paid/gm.length*100);
+    var unpaidNames=gm.filter(function(m){return !dues[m.id+'_'+ym]||!dues[m.id+'_'+ym].paid}).map(function(m){return m.name}).join(', ');
+    dh+='<div class="card">'
+      +'<div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="font-weight:700">'+g.name+'</span><span style="color:var(--text2)">'+paid+'/'+gm.length+'명 · '+(paid*g.dues).toLocaleString()+'원</span></div>'
+      +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'
+      +(pct<100?'<div style="font-size:12px;color:var(--red);margin-top:6px">미납: '+unpaidNames+'</div>':'<div style="font-size:12px;color:var(--mint);margin-top:6px">✅ 전원 납부 완료</div>')
+      +'</div>';
   });
   document.getElementById('home-dues-summary').innerHTML=dh||'<div class="empty-state"><div class="empty-icon">💰</div><p>모임을 추가해 주세요</p></div>';
 
-  // 일정
-  const today=new Date().toISOString().slice(0,10);
-  const upcoming=events.filter(e=>!e.done&&e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
-  document.getElementById('home-events').innerHTML=upcoming.length?upcoming.map(e=>{
-    const g=groups.find(g=>g.id===e.groupId);
-    const [y,mo,day]=e.date.split('-');
-    return `<div class="card"><div class="event-row">
-      <div class="event-date-box"><div class="event-day">${day}</div><div class="event-month">${mo}월</div></div>
-      <div class="event-info"><div class="event-name">${e.title}</div><div class="event-detail">${e.place}${e.time?' · '+e.time:''}</div>${g?`<div style="margin-top:4px"><span class="badge badge-group">${g.name}</span></div>`:''}</div>
-    </div></div>`;
-  }).join(''):'<div class="card" style="color:var(--text2);font-size:14px;text-align:center;padding:20px">예정된 일정이 없어요</div>';
+  // 다가오는 일정
+  var today=new Date().toISOString().slice(0,10);
+  var upcoming=events.filter(function(e){return !e.done&&e.date>=today}).sort(function(a,b){return a.date.localeCompare(b.date)}).slice(0,3);
+  var evHtml=upcoming.map(function(e){
+    var g=groups.find(function(g){return g.id===e.groupId});
+    var parts=e.date.split('-');
+    return '<div class="card"><div style="display:flex;gap:12px;align-items:flex-start">'
+      +'<div class="event-date-box"><div class="event-day">'+parts[2]+'</div><div class="event-month">'+parts[1]+'월</div></div>'
+      +'<div style="flex:1"><div style="font-size:14px;font-weight:700">'+e.title+'</div>'
+      +'<div style="font-size:12px;color:var(--text2);margin-top:3px">'+e.place+(e.time?' · '+e.time:'')+'</div>'
+      +(g?'<div style="margin-top:4px"><span class="badge badge-group">'+g.name+'</span></div>':'')
+      +'</div></div></div>';
+  }).join('');
+  document.getElementById('home-events').innerHTML=evHtml||'<div class="card" style="color:var(--text2);font-size:14px;text-align:center;padding:20px">예정된 일정이 없어요</div>';
 
-  // 미납
-  const unpaid=members.filter(m=>!dues[m.id+'_'+ym]?.paid);
-  let uh='';
+  // 미납 회원
+  var unpaid=members.filter(function(m){return !dues[m.id+'_'+ym]||!dues[m.id+'_'+ym].paid});
+  var uh='';
   if(unpaid.length){
-    uh=`<div class="alert-box">⚠️ ${ym} 미납 ${unpaid.length}명</div>`;
-    uh+=unpaid.map(m=>{
-      const g=groups.find(g=>g.id===m.groupId);
-      return `<div class="card"><div class="member-row">
-        <div class="avatar av-${m.av}">${m.name[0]}</div>
-        <div class="member-info"><div class="member-name">${m.name}</div><div class="member-sub">${g?g.name:''} · ${g?g.dues.toLocaleString()+'원':''}</div></div>
-        <button onclick="openPayModal('${m.id}')" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">납부처리</button>
-      </div></div>`;
+    uh='<div class="alert-box">⚠️ '+ym+' 미납 '+unpaid.length+'명</div>';
+    uh+=unpaid.map(function(m){
+      var g=groups.find(function(g){return g.id===m.groupId});
+      return '<div class="card"><div class="member-row">'
+        +'<div class="avatar av-'+m.av+'">'+m.name[0]+'</div>'
+        +'<div class="member-info"><div class="member-name">'+m.name+'</div><div class="member-sub">'+(g?g.name:'')+' · '+(g?g.dues.toLocaleString()+'원':'')+'</div></div>'
+        +'<button onclick="openPayModal(\''+m.id+'\')" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">납부처리</button>'
+        +'</div></div>';
     }).join('');
   } else {
     uh='<div class="card" style="color:var(--mint);font-size:14px;text-align:center;padding:16px;font-weight:700">🎉 이번 달 전원 납부 완료!</div>';
@@ -518,475 +464,390 @@ function renderHome(){
   document.getElementById('home-unpaid').innerHTML=uh;
 }
 
-// ── 생일 알림 (홈 배너) ──────────────────
+// ── 생일 알림 배너 ──
 function getBdayAlert(){
-  const d=new Date();
-  const thisM=d.getMonth()+1;
-  const today=d.getDate();
-  const bdayThisMonth=members.filter(m=>{
-    if(!m.bday)return false;
-    const bm=parseInt(m.bday.split('-')[1]);
-    return bm===thisM;
+  var d=new Date(), thisM=d.getMonth()+1, today=d.getDate();
+  var soon=members.filter(function(m){
+    if(!m.bday) return false;
+    var bm=parseInt(m.bday.split('-')[1]), bd=parseInt(m.bday.split('-')[2]);
+    return bm===thisM&&bd>=today&&bd<=today+7;
   });
-  if(!bdayThisMonth.length)return '';
-  const soon=bdayThisMonth.filter(m=>{
-    const bd=parseInt(m.bday.split('-')[2]);
-    return bd>=today&&bd<=today+7;
-  });
-  if(!soon.length)return '';
-  return `<div class="bday-card" style="margin-bottom:12px">
-    <div style="font-size:13px;font-weight:700;color:#880E4F;margin-bottom:8px">🎉 곧 기념일인 회원</div>
-    ${soon.map(m=>{
-      const bd=parseInt(m.bday.split('-')[2]);
-      const dDay=bd-today;
-      const g=groups.find(g=>g.id===m.groupId);
-      return `<div class="bday-row">
-        <div class="avatar av-${m.av}" style="background:#F8BBD0;color:#880E4F">${m.name[0]}</div>
-        <div class="member-info"><div class="member-name" style="color:#880E4F">${m.name}</div><div class="member-sub">${g?g.name:''}</div></div>
-        <span style="font-size:13px;font-weight:700;color:#880E4F">${dDay===0?'오늘! 🎉':dDay+'일 후'}</span>
-      </div>`;
-    }).join('')}
-  </div>`;
+  if(!soon.length) return '';
+  var rows=soon.map(function(m){
+    var bd=parseInt(m.bday.split('-')[2]), dDay=bd-today;
+    var g=groups.find(function(g){return g.id===m.groupId});
+    return '<div style="display:flex;align-items:center;gap:10px;margin-top:8px">'
+      +'<div class="avatar av-'+m.av+'" style="background:#F8BBD0;color:#880E4F">'+m.name[0]+'</div>'
+      +'<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#880E4F">'+m.name+'</div><div style="font-size:12px;color:#880E4F">'+(g?g.name:'')+'</div></div>'
+      +'<span style="font-size:13px;font-weight:700;color:#880E4F">'+(dDay===0?'오늘! 🎉':dDay+'일 후')+'</span></div>';
+  }).join('');
+  return '<div class="bday-card" style="margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:#880E4F">🎉 곧 기념일인 회원</div>'+rows+'</div>';
 }
 
-// ── 기념일 페이지 ──────────────────────────
-let anniversaries = load('anniversaries') || [
-  {id:'a1', groupId:'g1', title:'항공친목회 창립기념일', date:'--03-15', memo:'창립 5주년'},
-  {id:'a2', groupId:'g2', title:'조종사모임 창립기념일', date:'--06-20', memo:''},
-];
-
+// ── 기념일 ──
 function renderBirthday(){
-  const d=new Date();
-  const thisM=d.getMonth()+1;
-  const nextM=thisM===12?1:thisM+1;
-  const today=d.getDate();
-
-  // 이번 달 생일
-  const withBday=members.filter(m=>m.bday);
-  const thisMonthBday=withBday.filter(m=>parseInt(m.bday.split('-')[1])===thisM).sort((a,b)=>parseInt(a.bday.split('-')[2])-parseInt(b.bday.split('-')[2]));
-  const nextMonthBday=withBday.filter(m=>parseInt(m.bday.split('-')[1])===nextM).sort((a,b)=>parseInt(a.bday.split('-')[2])-parseInt(b.bday.split('-')[2]));
+  var d=new Date(), thisM=d.getMonth()+1, nextM=thisM===12?1:thisM+1, today=d.getDate();
+  var withBday=members.filter(function(m){return m.bday});
 
   function bdayCard(m,isSoon){
-    const g=groups.find(g=>g.id===m.groupId);
-    const bd=parseInt(m.bday.split('-')[2]);
-    const mm=parseInt(m.bday.split('-')[1]);
-    const dDay=(mm===thisM)?(bd-today):null;
-    return `<div class="card" style="${isSoon?'border:2px solid #F48FB1':''}">
-      <div class="member-row" style="padding:0;border:none">
-        <div class="avatar av-${m.av}" style="${isSoon?'background:#F8BBD0;color:#880E4F':''}">${m.name[0]}</div>
-        <div class="member-info">
-          <div class="member-name">${m.name} ${dDay===0?'🎉':''}</div>
-          <div class="member-sub">${g?g.name:''} · ${m.bday.slice(5).replace('-','월 ')}일</div>
-        </div>
-        <div style="text-align:right">
-          ${dDay!==null?`<div style="font-size:13px;font-weight:700;color:${dDay<=3?'#880E4F':'var(--text2)'}">${dDay===0?'오늘!':dDay+'일 후'}</div>`:''}
-          <span class="badge badge-role" style="font-size:10px">${m.role}</span>
-        </div>
-      </div>
-    </div>`;
+    var g=groups.find(function(g){return g.id===m.groupId});
+    var bd=parseInt(m.bday.split('-')[2]), mm=parseInt(m.bday.split('-')[1]);
+    var dDay=(mm===thisM)?(bd-today):null;
+    return '<div class="card" style="'+(isSoon?'border:2px solid #F48FB1':'')+'">'
+      +'<div class="member-row" style="padding:0;border:none">'
+      +'<div class="avatar av-'+m.av+'" style="'+(isSoon?'background:#F8BBD0;color:#880E4F':'')+'">'+m.name[0]+'</div>'
+      +'<div class="member-info"><div class="member-name">'+m.name+(dDay===0?' 🎉':'')+'</div>'
+      +'<div class="member-sub">'+(g?g.name:'')+' · '+m.bday.slice(5).replace('-','월 ')+'일</div></div>'
+      +'<div style="text-align:right">'
+      +(dDay!==null?'<div style="font-size:13px;font-weight:700;color:'+(dDay<=3?'#880E4F':'var(--text2)')+'">'+( dDay===0?'오늘!':dDay+'일 후')+'</div>':'')
+      +'<span class="badge badge-role" style="font-size:11px">'+m.role+'</span>'
+      +'</div></div></div>';
   }
 
-  document.getElementById('bday-this-month').innerHTML=`
-    <div class="section-label">🎂 이번 달 생일 (${thisM}월)</div>
-    ${thisMonthBday.length?thisMonthBday.map(m=>bdayCard(m,parseInt(m.bday.split('-')[2])>=today&&parseInt(m.bday.split('-')[2])<=today+7)).join(''):'<div class="card" style="color:var(--text2);text-align:center;padding:16px;font-size:14px">이번 달 생일인 회원이 없어요</div>'}`;
+  var thisBday=withBday.filter(function(m){return parseInt(m.bday.split('-')[1])===thisM}).sort(function(a,b){return parseInt(a.bday.split('-')[2])-parseInt(b.bday.split('-')[2])});
+  var nextBday=withBday.filter(function(m){return parseInt(m.bday.split('-')[1])===nextM}).sort(function(a,b){return parseInt(a.bday.split('-')[2])-parseInt(b.bday.split('-')[2])});
 
-  document.getElementById('bday-next-month').innerHTML=`
-    <div class="section-label">다음 달 생일 (${nextM}월)</div>
-    ${nextMonthBday.length?nextMonthBday.map(m=>bdayCard(m,false)).join(''):'<div class="card" style="color:var(--text2);text-align:center;padding:16px;font-size:14px">다음 달 생일인 회원이 없어요</div>'}`;
+  document.getElementById('bday-this-month').innerHTML=
+    '<div class="section-label">🎂 이번 달 생일 ('+thisM+'월)</div>'
+    +(thisBday.length?thisBday.map(function(m){return bdayCard(m,parseInt(m.bday.split('-')[2])>=today&&parseInt(m.bday.split('-')[2])<=today+7)}).join(''):'<div class="card" style="color:var(--text2);text-align:center;padding:16px;font-size:14px">이번 달 생일인 회원이 없어요</div>');
 
-  // 기념일 목록
-  const thisMAnniv=anniversaries.filter(a=>{
-    const m=a.date.startsWith('--')?parseInt(a.date.slice(2,4)):parseInt(a.date.split('-')[1]);
-    return m===thisM;
-  });
-  const nextMAnniv=anniversaries.filter(a=>{
-    const m=a.date.startsWith('--')?parseInt(a.date.slice(2,4)):parseInt(a.date.split('-')[1]);
-    return m===nextM;
-  });
-  const otherAnniv=anniversaries.filter(a=>{
-    const m=a.date.startsWith('--')?parseInt(a.date.slice(2,4)):parseInt(a.date.split('-')[1]);
-    return m!==thisM&&m!==nextM;
-  });
+  document.getElementById('bday-next-month').innerHTML=
+    '<div class="section-label">다음 달 생일 ('+nextM+'월)</div>'
+    +(nextBday.length?nextBday.map(function(m){return bdayCard(m,false)}).join(''):'<div class="card" style="color:var(--text2);text-align:center;padding:16px;font-size:14px">다음 달 생일인 회원이 없어요</div>');
+
+  // 기념일
+  var thisA=anniversaries.filter(function(a){var m=a.date.startsWith('--')?parseInt(a.date.slice(2,4)):parseInt(a.date.split('-')[1]);return m===thisM});
+  var nextA=anniversaries.filter(function(a){var m=a.date.startsWith('--')?parseInt(a.date.slice(2,4)):parseInt(a.date.split('-')[1]);return m===nextM});
+  var otherA=anniversaries.filter(function(a){var m=a.date.startsWith('--')?parseInt(a.date.slice(2,4)):parseInt(a.date.split('-')[1]);return m!==thisM&&m!==nextM});
 
   function annivCard(a){
-    const g=groups.find(g=>g.id===a.groupId);
-    const dateParts=a.date.startsWith('--')?['매년',a.date.slice(2,4),a.date.slice(5,7)]:a.date.split('-');
-    return `<div class="card">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:40px;height:40px;border-radius:10px;background:#E8F0FE;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏅</div>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:700">${a.title}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">${dateParts[0]==='매년'?`매년 ${parseInt(dateParts[1])}월 ${parseInt(dateParts[2])}일`:a.date} ${a.memo?'· '+a.memo:''}</div>
-          ${g?`<div style="margin-top:4px"><span class="badge badge-group">${g.name}</span></div>`:''}
-        </div>
-        <button onclick="deleteAnniv('${a.id}')" class="btn-danger" style="font-size:11px;padding:5px 9px;flex-shrink:0">삭제</button>
-      </div>
-    </div>`;
+    var g=groups.find(function(g){return g.id===a.groupId});
+    var mo=a.date.startsWith('--')?parseInt(a.date.slice(2,4)):parseInt(a.date.split('-')[1]);
+    var dd=a.date.startsWith('--')?parseInt(a.date.slice(5,7)):parseInt(a.date.split('-')[2]);
+    return '<div class="card"><div style="display:flex;align-items:center;gap:10px">'
+      +'<div style="width:40px;height:40px;border-radius:10px;background:#E8F0FE;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏅</div>'
+      +'<div style="flex:1"><div style="font-size:14px;font-weight:700">'+a.title+'</div>'
+      +'<div style="font-size:12px;color:var(--text2);margin-top:2px">매년 '+mo+'월 '+dd+'일'+(a.memo?' · '+a.memo:'')+'</div>'
+      +(g?'<div style="margin-top:4px"><span class="badge badge-group">'+g.name+'</span></div>':'')
+      +'</div><button onclick="deleteAnniv(\''+a.id+'\')" class="btn-danger" style="font-size:11px;padding:5px 9px;flex-shrink:0">삭제</button>'
+      +'</div></div>';
   }
 
-  let annivHtml=`
-    <div class="section-label" style="margin-top:8px">📅 이번 달 기념일</div>
-    ${thisMAnniv.length?thisMAnniv.map(annivCard).join(''):'<div class="card" style="color:var(--text2);text-align:center;padding:14px;font-size:14px">이번 달 기념일이 없어요</div>'}
-    <div class="section-label">다음 달 기념일</div>
-    ${nextMAnniv.length?nextMAnniv.map(annivCard).join(''):'<div class="card" style="color:var(--text2);text-align:center;padding:14px;font-size:14px">다음 달 기념일이 없어요</div>'}
-    ${otherAnniv.length?`<div class="section-label">그 외 기념일</div>${otherAnniv.map(annivCard).join('')}`:''}
-    <button onclick="openAddAnniv()" class="btn-secondary" style="margin-top:4px">+ 기념일 추가</button>`;
-  document.getElementById('anniv-list').innerHTML=annivHtml;
+  document.getElementById('anniv-list').innerHTML=
+    '<div class="section-label" style="margin-top:8px">📅 이번 달 기념일</div>'
+    +(thisA.length?thisA.map(annivCard).join(''):'<div class="card" style="color:var(--text2);text-align:center;padding:14px;font-size:14px">이번 달 기념일이 없어요</div>')
+    +'<div class="section-label">다음 달 기념일</div>'
+    +(nextA.length?nextA.map(annivCard).join(''):'<div class="card" style="color:var(--text2);text-align:center;padding:14px;font-size:14px">다음 달 기념일이 없어요</div>')
+    +(otherA.length?'<div class="section-label">그 외 기념일</div>'+otherA.map(annivCard).join(''):'')
+    +'<button onclick="openAddAnniv()" class="btn-secondary" style="margin-top:4px">+ 기념일 추가</button>';
 
-  const noBday=members.filter(m=>!m.bday);
-  document.getElementById('bday-all-list').innerHTML=noBday.length?`
-    <div class="section-label">생일 미등록 회원 (${noBday.length}명)</div>
-    <div class="card" style="color:var(--text2);font-size:13px">
-      ${noBday.map(m=>`<span style="display:inline-block;margin:3px 6px 3px 0;background:var(--bg);padding:4px 10px;border-radius:20px;font-size:12px">${m.name}</span>`).join('')}
-      <div style="margin-top:8px;font-size:12px">👉 회원 탭에서 삭제 후 생년월일 포함해 다시 추가하면 등록돼요</div>
-    </div>`:'';
+  var noBday=members.filter(function(m){return !m.bday});
+  document.getElementById('bday-all-list').innerHTML=noBday.length?
+    '<div class="section-label">생일 미등록 회원 ('+noBday.length+'명)</div>'
+    +'<div class="card" style="color:var(--text2);font-size:13px">'
+    +noBday.map(function(m){return '<span style="display:inline-block;margin:3px 6px 3px 0;background:var(--bg);padding:4px 10px;border-radius:20px;font-size:12px">'+m.name+'</span>'}).join('')
+    +'<div style="margin-top:8px;font-size:12px">👉 회원 탭에서 삭제 후 생년월일 포함해 다시 추가하면 등록돼요</div></div>':'';
 }
 
-function openAddAnniv(){fillGroupSelect('an-group');openModal('modal-add-anniv')}
-function addAnniv(){
-  const gId=document.getElementById('an-group').value;
-  const title=document.getElementById('an-title').value.trim();
-  const date=document.getElementById('an-date').value;
-  const memo=document.getElementById('an-memo').value.trim();
-  if(!title){showToast('기념일 이름을 입력해 주세요');return}
-  if(!date){showToast('날짜를 입력해 주세요');return}
-  anniversaries.push({id:uid(),groupId:gId,title,date:'--'+date.replace('/','-').replace('월 ','').replace('일','').padStart(5,'0'),memo});
-  save('anniversaries',anniversaries);
-  closeModal('modal-add-anniv');
-  document.getElementById('an-title').value='';document.getElementById('an-memo').value='';document.getElementById('an-date').value='';
-  showToast('기념일이 추가됐어요 🎉');
-  renderBirthday();
-}
-function deleteAnniv(id){
-  if(!confirm('기념일을 삭제할까요?'))return;
-  anniversaries=anniversaries.filter(a=>a.id!==id);
-  save('anniversaries',anniversaries);showToast('삭제됐어요');renderBirthday();
-}
-
-// ── 백업 / 복원 ───────────────────────────
-function backupData(){
-  const data={groups,members,dues,events,expenses,anniversaries,backupDate:new Date().toISOString()};
-  const json=JSON.stringify(data,null,2);
-  const blob=new Blob([json],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  const date=new Date().toISOString().slice(0,10).replace(/-/g,'');
-  a.href=url;a.download=`총무앱_백업_${date}.json`;a.click();
-  URL.revokeObjectURL(url);
-  showToast('백업 파일이 다운로드됐어요 💾');
-}
-function restoreData(){
-  if(!confirm('백업 파일을 불러오면 현재 데이터가 모두 교체됩니다.\n계속할까요?'))return;
-  const input=document.createElement('input');
-  input.type='file';input.accept='.json';
-  input.onchange=e=>{
-    const file=e.target.files[0];
-    if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      try{
-        const data=JSON.parse(ev.target.result);
-        if(!data.groups||!data.members){showToast('올바른 백업 파일이 아니에요');return}
-        groups=data.groups||[];members=data.members||[];dues=data.dues||{};
-        events=data.events||[];expenses=data.expenses||[];anniversaries=data.anniversaries||[];
-        saveAll();save('anniversaries',anniversaries);
-        showToast('복원 완료! ✅');renderAll();
-      }catch{showToast('파일을 읽을 수 없어요')}
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-}
-
-// ── 회원 ──────────────────────────────────
-let memberFilter='all';
+// ── 회원 ──
+var memberFilter='all';
 function renderMembers(){
-  const chips=[{id:'all',name:'전체'},...groups];
-  document.getElementById('member-group-chips').innerHTML=chips.map(g=>`<div class="chip ${memberFilter===g.id?'sel':''}" onclick="setMemberFilter('${g.id}')">${g.name}</div>`).join('');
-  const filtered=memberFilter==='all'?members:members.filter(m=>m.groupId===memberFilter);
-  document.getElementById('member-count-label').textContent=`전체 ${members.length}명 · ${groups.length}개 모임`;
+  var chips=[{id:'all',name:'전체'}].concat(groups);
+  document.getElementById('member-group-chips').innerHTML=chips.map(function(g){return '<div class="chip'+(memberFilter===g.id?' sel':'')+'" onclick="setMemberFilter(\''+g.id+'\')">'+g.name+'</div>'}).join('');
+  var filtered=memberFilter==='all'?members:members.filter(function(m){return m.groupId===memberFilter});
+  document.getElementById('member-count-label').textContent='전체 '+members.length+'명 · '+groups.length+'개 모임';
   if(!filtered.length){document.getElementById('member-list').innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><p>회원을 추가해 주세요</p></div>';return}
-  const ym=thisYM();
-  document.getElementById('member-list').innerHTML=filtered.map(m=>{
-    const g=groups.find(g=>g.id===m.groupId);
-    const isPaid=dues[m.id+'_'+ym]?.paid;
-    const bdayStr=m.bday?`<span class="badge badge-bday" style="margin-left:4px">🎂 ${m.bday.slice(5).replace('-','/')}</span>`:'';
-    return `<div class="card"><div class="member-row">
-      <div class="avatar av-${m.av}">${m.name[0]}</div>
-      <div class="member-info">
-        <div class="member-name">${m.name} <span class="badge badge-role" style="font-size:10px">${m.role}</span>${bdayStr}</div>
-        <div class="member-sub">${m.phone}</div>
-        <div style="margin-top:3px">${g?`<span class="badge badge-group">${g.name}</span>`:''}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-        <span class="badge ${isPaid?'badge-ok':'badge-no'}">${isPaid?'납부':'미납'}</span>
-        <button class="btn-danger" style="font-size:11px;padding:4px 8px" onclick="deleteMember('${m.id}')">삭제</button>
-      </div>
-    </div></div>`;
+  var ym=thisYM();
+  document.getElementById('member-list').innerHTML=filtered.map(function(m){
+    var g=groups.find(function(g){return g.id===m.groupId});
+    var isPaid=dues[m.id+'_'+ym]&&dues[m.id+'_'+ym].paid;
+    var bdayStr=m.bday?'<span class="badge badge-bday" style="margin-left:4px">🎂 '+m.bday.slice(5).replace('-','/')+'</span>':'';
+    return '<div class="card"><div class="member-row">'
+      +'<div class="avatar av-'+m.av+'">'+m.name[0]+'</div>'
+      +'<div class="member-info"><div class="member-name">'+m.name+' <span class="badge badge-role" style="font-size:11px">'+m.role+'</span>'+bdayStr+'</div>'
+      +'<div class="member-sub">'+m.phone+'</div>'
+      +'<div style="margin-top:3px">'+(g?'<span class="badge badge-group">'+g.name+'</span>':'')+'</div></div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'
+      +'<span class="badge '+(isPaid?'badge-ok':'badge-no')+'">'+(isPaid?'납부':'미납')+'</span>'
+      +'<button class="btn-danger" style="font-size:11px;padding:8px 12px" onclick="deleteMember(\''+m.id+'\')">삭제</button>'
+      +'</div></div></div>';
   }).join('');
 }
 function setMemberFilter(id){memberFilter=id;renderMembers()}
 
-// ── 회비 ──────────────────────────────────
-let duesFilter='all';
+// ── 회비 ──
+var duesFilter='all';
 function renderDues(){
-  const ym=thisYM();
-  const d=new Date();
+  var ym=thisYM(), d=new Date();
   document.getElementById('dues-month-label').textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월 회비 현황';
-  const chips=[{id:'all',name:'전체'},...groups];
-  document.getElementById('dues-group-chips').innerHTML=chips.map(g=>`<div class="chip ${duesFilter===g.id?'sel':''}" onclick="setDuesFilter('${g.id}')">${g.name}</div>`).join('');
-  const filtered=duesFilter==='all'?members:members.filter(m=>m.groupId===duesFilter);
+  var chips=[{id:'all',name:'전체'}].concat(groups);
+  document.getElementById('dues-group-chips').innerHTML=chips.map(function(g){return '<div class="chip'+(duesFilter===g.id?' sel':'')+'" onclick="setDuesFilter(\''+g.id+'\')">'+g.name+'</div>'}).join('');
+  var filtered=duesFilter==='all'?members:members.filter(function(m){return m.groupId===duesFilter});
   if(!filtered.length){document.getElementById('dues-list').innerHTML='<div class="empty-state"><div class="empty-icon">💰</div><p>회원을 추가해 주세요</p></div>';return}
-  const paid=filtered.filter(m=>dues[m.id+'_'+ym]?.paid);
-  const totalExpect=filtered.reduce((s,m)=>{const g=groups.find(g=>g.id===m.groupId);return s+(g?g.dues:0)},0);
-  const totalPaid=paid.reduce((s,m)=>{const g=groups.find(g=>g.id===m.groupId);return s+(g?g.dues:0)},0);
-  let html=`<div class="card">
-    <div class="progress-info"><span style="font-weight:700">납부 현황</span><span style="font-size:13px;color:var(--text2)">${totalPaid.toLocaleString()}원 / ${totalExpect.toLocaleString()}원</span></div>
-    <div class="progress-bar" style="margin:6px 0"><div class="progress-fill" style="width:${totalExpect?Math.round(totalPaid/totalExpect*100):0}%"></div></div>
-    <div style="display:flex;gap:12px;margin-top:8px">
-      <span style="font-size:13px"><span style="color:var(--mint);font-weight:700">✓ ${paid.length}명</span> 납부</span>
-      <span style="font-size:13px"><span style="color:var(--red);font-weight:700">✗ ${filtered.length-paid.length}명</span> 미납</span>
-    </div>
-  </div>`;
-  html+=filtered.map(m=>{
-    const g=groups.find(g=>g.id===m.groupId);
-    const dData=dues[m.id+'_'+ym];
-    const isPaid=dData?.paid;
-    return `<div class="card"><div class="dues-row">
-      <div class="avatar av-${m.av}">${m.name[0]}</div>
-      <div class="member-info"><div class="member-name">${m.name}</div><div class="member-sub">${g?g.name:''} ${isPaid?'· '+dData.method+' · '+dData.date:''}</div></div>
-      <div style="text-align:right">
-        <div class="dues-amount" style="color:${isPaid?'var(--mint)':'var(--red)'}">${g?g.dues.toLocaleString():0}원</div>
-        ${isPaid?`<button onclick="unpay('${m.id}')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;margin-top:4px">취소</button>`
-                :`<button onclick="openPayModal('${m.id}')" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px">납부</button>`}
-      </div>
-    </div></div>`;
+  var paid=filtered.filter(function(m){return dues[m.id+'_'+ym]&&dues[m.id+'_'+ym].paid});
+  var totalExpect=filtered.reduce(function(s,m){var g=groups.find(function(g){return g.id===m.groupId});return s+(g?g.dues:0)},0);
+  var totalPaid=paid.reduce(function(s,m){var g=groups.find(function(g){return g.id===m.groupId});return s+(g?g.dues:0)},0);
+  var html='<div class="card">'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="font-weight:700">납부 현황</span><span style="color:var(--text2)">'+totalPaid.toLocaleString()+'원 / '+totalExpect.toLocaleString()+'원</span></div>'
+    +'<div class="progress-bar" style="margin-bottom:8px"><div class="progress-fill" style="width:'+(totalExpect?Math.round(totalPaid/totalExpect*100):0)+'%"></div></div>'
+    +'<div style="display:flex;gap:12px">'
+    +'<span style="font-size:13px"><span style="color:var(--mint);font-weight:700">✓ '+paid.length+'명</span> 납부</span>'
+    +'<span style="font-size:13px"><span style="color:var(--red);font-weight:700">✗ '+(filtered.length-paid.length)+'명</span> 미납</span>'
+    +'</div></div>';
+  html+=filtered.map(function(m){
+    var g=groups.find(function(g){return g.id===m.groupId});
+    var dData=dues[m.id+'_'+ym], isPaid=dData&&dData.paid;
+    return '<div class="card"><div style="display:flex;align-items:center;gap:10px;padding:2px 0">'
+      +'<div class="avatar av-'+m.av+'">'+m.name[0]+'</div>'
+      +'<div class="member-info"><div class="member-name">'+m.name+'</div>'
+      +'<div class="member-sub">'+(g?g.name:'')+(isPaid?' · '+dData.method+' · '+dData.date:'')+'</div></div>'
+      +'<div style="text-align:right">'
+      +'<div style="font-size:14px;font-weight:700;color:'+(isPaid?'var(--mint)':'var(--red)')+'">'+( g?g.dues.toLocaleString():0)+'원</div>'
+      +(isPaid?'<button onclick="unpay(\''+m.id+'\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;margin-top:4px">취소</button>'
+              :'<button onclick="openPayModal(\''+m.id+'\')" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px">납부</button>')
+      +'</div></div></div>';
   }).join('');
   document.getElementById('dues-list').innerHTML=html;
 }
 function setDuesFilter(id){duesFilter=id;renderDues()}
 
-// ── 일정 ──────────────────────────────────
-let schedFilter='all';
+// ── 일정 ──
+var schedFilter='all';
 function renderSchedule(){
-  const chips=[{id:'all',name:'전체'},...groups];
-  document.getElementById('sched-group-chips').innerHTML=chips.map(g=>`<div class="chip ${schedFilter===g.id?'sel':''}" onclick="setSchedFilter('${g.id}')">${g.name}</div>`).join('');
-  const today=new Date().toISOString().slice(0,10);
-  const filtered=(schedFilter==='all'?events:events.filter(e=>e.groupId===schedFilter)).sort((a,b)=>a.date.localeCompare(b.date));
+  var chips=[{id:'all',name:'전체'}].concat(groups);
+  document.getElementById('sched-group-chips').innerHTML=chips.map(function(g){return '<div class="chip'+(schedFilter===g.id?' sel':'')+'" onclick="setSchedFilter(\''+g.id+'\')">'+g.name+'</div>'}).join('');
+  var today=new Date().toISOString().slice(0,10);
+  var filtered=(schedFilter==='all'?events:events.filter(function(e){return e.groupId===schedFilter})).sort(function(a,b){return a.date.localeCompare(b.date)});
   if(!filtered.length){document.getElementById('schedule-list').innerHTML='<div class="empty-state"><div class="empty-icon">📅</div><p>일정을 추가해 주세요</p></div>';return}
-  const upcoming=filtered.filter(e=>!e.done&&e.date>=today);
-  const past=filtered.filter(e=>e.done||e.date<today);
-  let html='';
-  if(upcoming.length){html+='<div class="section-label">예정된 일정</div>';html+=upcoming.map(e=>renderEventCard(e)).join('')}
-  if(past.length){html+='<div class="section-label" style="margin-top:16px">지난 일정</div>';html+=past.map(e=>renderEventCard(e,true)).join('')}
+  var upcoming=filtered.filter(function(e){return !e.done&&e.date>=today});
+  var past=filtered.filter(function(e){return e.done||e.date<today});
+  var html='';
+  if(upcoming.length){html+='<div class="section-label">예정된 일정</div>';html+=upcoming.map(function(e){return eventCard(e,false)}).join('')}
+  if(past.length){html+='<div class="section-label" style="margin-top:16px">지난 일정</div>';html+=past.map(function(e){return eventCard(e,true)}).join('')}
   document.getElementById('schedule-list').innerHTML=html;
 }
-function renderEventCard(e,isPast){
-  const g=groups.find(g=>g.id===e.groupId);
-  const [y,mo,day]=e.date.split('-');
-  return `<div class="card" style="${isPast?'opacity:.65':''}">
-    <div class="event-row">
-      <div class="event-date-box" style="${isPast?'background:#888':''}"><div class="event-day">${day}</div><div class="event-month">${mo}월</div></div>
-      <div class="event-info" style="flex:1">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <div class="event-name">${e.title}</div>
-          <span class="badge ${e.done?'badge-done':'badge-plan'}">${e.done?'완료':'예정'}</span>
-        </div>
-        <div class="event-detail">${e.place}${e.time?' · '+e.time:''}</div>
-        ${e.memo?`<div class="event-detail" style="margin-top:2px">📝 ${e.memo}</div>`:''}
-        ${g?`<div style="margin-top:5px"><span class="badge badge-group">${g.name}</span></div>`:''}
-        <div style="display:flex;gap:8px;margin-top:8px">
-          ${!e.done?`<button onclick="markEventDone('${e.id}')" style="background:var(--mint);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">완료처리</button>`:''}
-          <button onclick="deleteEvent('${e.id}')" class="btn-danger" style="font-size:12px;padding:5px 10px">삭제</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
+function eventCard(e,isPast){
+  var g=groups.find(function(g){return g.id===e.groupId});
+  var parts=e.date.split('-');
+  return '<div class="card" style="'+(isPast?'opacity:.65':'')+'">'
+    +'<div style="display:flex;gap:12px;align-items:flex-start">'
+    +'<div class="event-date-box" style="'+(isPast?'background:#888':'')+'"><div class="event-day">'+parts[2]+'</div><div class="event-month">'+parts[1]+'월</div></div>'
+    +'<div style="flex:1">'
+    +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><div style="font-size:14px;font-weight:700">'+e.title+'</div>'
+    +'<span class="badge '+(e.done?'badge-done':'badge-plan')+'">'+(e.done?'완료':'예정')+'</span></div>'
+    +'<div style="font-size:12px;color:var(--text2);margin-top:3px">'+e.place+(e.time?' · '+e.time:'')+'</div>'
+    +(e.memo?'<div style="font-size:12px;color:var(--text2);margin-top:2px">📝 '+e.memo+'</div>':'')
+    +(g?'<div style="margin-top:5px"><span class="badge badge-group">'+g.name+'</span></div>':'')
+    +'<div style="display:flex;gap:8px;margin-top:8px">'
+    +(!e.done?'<button onclick="markEventDone(\''+e.id+'\')" style="background:var(--mint);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">완료처리</button>':'')
+    +'<button onclick="deleteEvent(\''+e.id+'\')" class="btn-danger" style="font-size:12px;padding:6px 12px">삭제</button>'
+    +'</div></div></div></div>';
 }
 function setSchedFilter(id){schedFilter=id;renderSchedule()}
 
-// ── 결산 ──────────────────────────────────
-let settleTab='summary';
+// ── 결산 ──
+var settleTab='summary';
 function setSettleTab(tab,btn){
   settleTab=tab;
-  document.querySelectorAll('.tab-settle button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-settle button').forEach(function(b){b.classList.remove('active')});
   btn.classList.add('active');
   renderSettle();
 }
 function initSettle(){
-  const sel=document.getElementById('settle-group');
-  if(!sel.options.length){
-    sel.innerHTML=groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
-  }
-  const mi=document.getElementById('settle-month');
+  var sel=document.getElementById('settle-group');
+  if(!sel.options.length) sel.innerHTML=groups.map(function(g){return '<option value="'+g.id+'">'+g.name+'</option>'}).join('');
+  var mi=document.getElementById('settle-month');
   if(!mi.value) mi.value=thisYM();
   renderSettle();
 }
+function countUnpaidMonths(memberId,baseYM){
+  var cnt=0, d=new Date(baseYM+'-01');
+  for(var i=0;i<24;i++){
+    var k=memberId+'_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    if(!dues[k]||!dues[k].paid) cnt++; else break;
+    d.setMonth(d.getMonth()-1);
+  }
+  return cnt;
+}
 function renderSettle(){
-  const gId=document.getElementById('settle-group').value;
-  const ym=document.getElementById('settle-month').value;
-  if(!gId||!ym)return;
-  const g=groups.find(g=>g.id===gId);
-  if(!g)return;
-  const gMembers=members.filter(m=>m.groupId===gId);
-  const paidMembers=gMembers.filter(m=>dues[m.id+'_'+ym]?.paid);
-  const totalIncome=paidMembers.length*g.dues;
-  const gExpenses=expenses.filter(e=>e.groupId===gId&&e.date.startsWith(ym));
-  const totalExpense=gExpenses.reduce((s,e)=>s+e.amount,0);
-  const balance=totalIncome-totalExpense;
-  const [yr,mo]=ym.split('-');
+  var gId=document.getElementById('settle-group').value;
+  var ym=document.getElementById('settle-month').value;
+  if(!gId||!ym) return;
+  var g=groups.find(function(g){return g.id===gId});
+  if(!g) return;
+  var gMembers=members.filter(function(m){return m.groupId===gId});
+  var paidMembers=gMembers.filter(function(m){return dues[m.id+'_'+ym]&&dues[m.id+'_'+ym].paid});
+  var duesIncome=paidMembers.length*g.dues;
+  var gInc=incomes.filter(function(i){return i.groupId===gId&&i.date.startsWith(ym)});
+  var extraIncome=gInc.reduce(function(s,i){return s+i.amount},0);
+  var totalIncome=duesIncome+extraIncome;
+  var gExp=expenses.filter(function(e){return e.groupId===gId&&e.date.startsWith(ym)});
+  var totalExpense=gExp.reduce(function(s,e){return s+e.amount},0);
+  var balance=totalIncome-totalExpense;
+  var yr=ym.split('-')[0], mo=parseInt(ym.split('-')[1]);
 
   if(settleTab==='summary'){
-    document.getElementById('settle-content').innerHTML=`
-      <div class="settle-header">
-        <div style="font-size:13px;opacity:.8">${g.name} · ${yr}년 ${parseInt(mo)}월 결산</div>
-        <div class="settle-big">${balance>=0?'+':''} ${balance.toLocaleString()}원</div>
-        <div style="font-size:12px;opacity:.75;margin-top:3px">${balance>=0?'잉여금':'적자'}</div>
-      </div>
-      <div class="card">
-        <div class="settle-row"><span style="color:var(--text2)">총 회원수</span><span style="font-weight:700">${gMembers.length}명</span></div>
-        <div class="settle-row"><span style="color:var(--text2)">납부 인원</span><span style="font-weight:700;color:var(--mint)">${paidMembers.length}명</span></div>
-        <div class="settle-row"><span style="color:var(--text2)">미납 인원</span><span style="font-weight:700;color:var(--red)">${gMembers.length-paidMembers.length}명</span></div>
-        <div class="settle-row"><span style="color:var(--text2)">월 회비</span><span style="font-weight:700">${g.dues.toLocaleString()}원</span></div>
-        <div class="settle-row"><span style="color:var(--text2)">총 수입</span><span style="font-weight:700;color:var(--mint)">+${totalIncome.toLocaleString()}원</span></div>
-        <div class="settle-row"><span style="color:var(--text2)">총 지출</span><span style="font-weight:700;color:var(--red)">-${totalExpense.toLocaleString()}원</span></div>
-        <div class="settle-total"><span>잔액 (이월)</span><span style="color:${balance>=0?'var(--mint)':'var(--red)'}">${balance>=0?'+':''}${balance.toLocaleString()}원</span></div>
-      </div>
-      ${gMembers.filter(m=>!dues[m.id+'_'+ym]?.paid).length?`
-      <div class="card">
-        <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--red)">미납 회원</div>
-        ${gMembers.filter(m=>!dues[m.id+'_'+ym]?.paid).map(m=>`<div style="font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)">${m.name} · ${g.dues.toLocaleString()}원</div>`).join('')}
-      </div>`:''}`;
+    var unpaidM=gMembers.filter(function(m){return !dues[m.id+'_'+ym]||!dues[m.id+'_'+ym].paid});
+    var unpaidRows='';
+    if(unpaidM.length){
+      var totalUnpaidAmt=0;
+      var rows=unpaidM.map(function(m){
+        var months=countUnpaidMonths(m.id,ym);
+        var owed=months*g.dues;
+        totalUnpaidAmt+=owed;
+        var color=months>=3?'#B71C1C':months>=2?'#E65100':'#7a5200';
+        var bg=months>=3?'#FFEBEE':months>=2?'#FFF3E0':'#FFF8E1';
+        var label=months>=2?months+'개월 미납':'이번달 미납';
+        return '<div class="unpaid-row">'
+          +'<div><div style="font-size:14px;font-weight:700">'+m.name+'</div>'
+          +'<div style="font-size:12px;color:var(--text2);margin-top:2px">누적 미납액 '+owed.toLocaleString()+'원</div></div>'
+          +'<span style="background:'+bg+';color:'+color+';font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">'+label+'</span>'
+          +'</div>';
+      }).join('');
+      unpaidRows='<div class="card">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+        +'<div style="font-size:14px;font-weight:700;color:var(--red)">⚠️ 미납 현황 ('+unpaidM.length+'명)</div>'
+        +'<div style="font-size:13px;color:var(--red);font-weight:700">총 '+totalUnpaidAmt.toLocaleString()+'원</div>'
+        +'</div>'+rows+'</div>';
+    }
+    document.getElementById('settle-content').innerHTML=
+      '<div class="settle-header">'
+      +'<div style="font-size:13px;opacity:.8">'+g.name+' · '+yr+'년 '+mo+'월 결산</div>'
+      +'<div class="settle-big">'+(balance>=0?'+':'')+balance.toLocaleString()+'원</div>'
+      +'<div style="font-size:12px;opacity:.75;margin-top:3px">'+(balance>=0?'잉여금':'적자')+'</div>'
+      +'</div>'
+      +'<div class="card">'
+      +'<div style="font-size:13px;font-weight:700;color:var(--mint);margin-bottom:8px">💰 수입</div>'
+      +'<div class="settle-row"><span style="color:var(--text2)">회비 ('+paidMembers.length+'명 × '+g.dues.toLocaleString()+'원)</span><span style="font-weight:700;color:var(--mint)">+'+duesIncome.toLocaleString()+'원</span></div>'
+      +gInc.map(function(i){return '<div class="settle-row"><span style="color:var(--text2)">'+i.title+'</span><span style="font-weight:700;color:var(--mint)">+'+i.amount.toLocaleString()+'원</span></div>'}).join('')
+      +'<div class="settle-row" style="border-top:1.5px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">총 수입</span><span style="font-weight:700;color:var(--mint)">+'+totalIncome.toLocaleString()+'원</span></div>'
+      +'</div>'
+      +'<div class="card">'
+      +'<div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:8px">💸 지출</div>'
+      +(gExp.length?gExp.map(function(e){return '<div class="settle-row"><span style="color:var(--text2)">'+e.title+'</span><span style="font-weight:700;color:var(--red)">-'+e.amount.toLocaleString()+'원</span></div>'}).join(''):'<div style="font-size:13px;color:var(--text2);text-align:center;padding:8px">지출 없음</div>')
+      +'<div class="settle-row" style="border-top:1.5px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">총 지출</span><span style="font-weight:700;color:var(--red)">-'+totalExpense.toLocaleString()+'원</span></div>'
+      +'</div>'
+      +'<div class="card"><div class="settle-total"><span>최종 잔액</span><span style="color:'+(balance>=0?'var(--mint)':'var(--red)')+';font-size:18px">'+(balance>=0?'+':'')+balance.toLocaleString()+'원</span></div></div>'
+      +unpaidRows;
 
   } else if(settleTab==='expense'){
-    document.getElementById('settle-content').innerHTML=`
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div style="font-size:15px;font-weight:700">지출 내역</div>
-          <div style="font-size:13px;color:var(--red);font-weight:700">합계 -${totalExpense.toLocaleString()}원</div>
-        </div>
-        ${gExpenses.length?gExpenses.map(ex=>`
-          <div class="expense-row">
-            <div style="flex:1">
-              <div style="font-size:14px;font-weight:500">${ex.title}</div>
-              <div style="font-size:12px;color:var(--text2)">${ex.date}${ex.memo?' · '+ex.memo:''}</div>
-            </div>
-            <div style="text-align:right">
-              <div style="font-size:14px;font-weight:700;color:var(--red)">-${ex.amount.toLocaleString()}원</div>
-              <button onclick="deleteExpense('${ex.id}')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer">삭제</button>
-            </div>
-          </div>`).join(''):'<div style="text-align:center;color:var(--text2);padding:16px;font-size:14px">지출 내역이 없어요</div>'}
-      </div>
-      <button onclick="openExpenseModal('${gId}')" class="btn-primary" style="margin-top:4px">+ 지출 내역 추가</button>`;
+    document.getElementById('settle-content').innerHTML=
+      '<div class="card" style="margin-bottom:8px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      +'<div style="font-size:15px;font-weight:700">💵 기타 수입</div>'
+      +'<div style="font-size:13px;color:var(--mint);font-weight:700">+'+extraIncome.toLocaleString()+'원</div></div>'
+      +(gInc.length?gInc.map(function(i){
+        return '<div class="expense-row">'
+          +'<div style="flex:1"><div style="font-size:14px;font-weight:500">'+i.title+'</div>'
+          +'<div style="font-size:12px;color:var(--text2)">'+i.date+(i.memo?' · '+i.memo:'')+'</div></div>'
+          +'<div style="text-align:right"><div style="font-size:14px;font-weight:700;color:var(--mint)">+'+i.amount.toLocaleString()+'원</div>'
+          +'<button onclick="deleteIncome(\''+i.id+'\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer">삭제</button></div></div>';
+      }).join(''):'<div style="text-align:center;color:var(--text2);padding:12px;font-size:13px">기타 수입이 없어요</div>')
+      +'<button onclick="openIncomeModal(\''+gId+'\')" style="width:100%;margin-top:10px;padding:11px;background:#E1F5EE;color:#085041;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ 이자 · 찬조금 · 벌금 등 추가</button>'
+      +'</div>'
+      +'<div class="card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      +'<div style="font-size:15px;font-weight:700">💸 지출 내역</div>'
+      +'<div style="font-size:13px;color:var(--red);font-weight:700">-'+totalExpense.toLocaleString()+'원</div></div>'
+      +(gExp.length?gExp.map(function(ex){
+        return '<div class="expense-row">'
+          +'<div style="flex:1"><div style="font-size:14px;font-weight:500">'+ex.title+'</div>'
+          +'<div style="font-size:12px;color:var(--text2)">'+ex.date+(ex.memo?' · '+ex.memo:'')+'</div></div>'
+          +'<div style="text-align:right"><div style="font-size:14px;font-weight:700;color:var(--red)">-'+ex.amount.toLocaleString()+'원</div>'
+          +'<button onclick="deleteExpense(\''+ex.id+'\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer">삭제</button></div></div>';
+      }).join(''):'<div style="text-align:center;color:var(--text2);padding:12px;font-size:13px">지출 내역이 없어요</div>')
+      +'<button onclick="openExpenseModal(\''+gId+'\')" style="width:100%;margin-top:10px;padding:11px;background:#FFEBEE;color:#B71C1C;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ 식사비 · 경조사비 · 비품 등 추가</button>'
+      +'</div>';
 
   } else {
-    // 공지 생성
-    const unpaidNames=gMembers.filter(m=>!dues[m.id+'_'+ym]?.paid).map(m=>m.name);
-    const paidNames=paidMembers.map(m=>m.name);
-    const noticeText=`📢 [${g.name}] ${yr}년 ${parseInt(mo)}월 회비 결산 공지
-
-━━━━━━━━━━━━━━━━
-💰 수입 내역
-• 월 회비 (${g.dues.toLocaleString()}원 × ${paidMembers.length}명)
-  = ${totalIncome.toLocaleString()}원
-
-📋 납부 완료 (${paidMembers.length}명)
-${paidNames.map(n=>`  ✅ ${n}`).join('\n')}
-${unpaidNames.length?`\n❌ 미납 (${unpaidNames.length}명)\n${unpaidNames.map(n=>`  ⚠️ ${n}`).join('\n')}`:''}
-
-━━━━━━━━━━━━━━━━
-💸 지출 내역
-${gExpenses.length?gExpenses.map(e=>`• ${e.title}: ${e.amount.toLocaleString()}원`).join('\n'):'• 지출 없음'}
-  합계: -${totalExpense.toLocaleString()}원
-
-━━━━━━━━━━━━━━━━
-📊 최종 결산
-• 총 수입: +${totalIncome.toLocaleString()}원
-• 총 지출: -${totalExpense.toLocaleString()}원
-• 잔액: ${balance>=0?'+':''}${balance.toLocaleString()}원
-
-감사합니다 🙏
-총무 드림`;
-    document.getElementById('settle-content').innerHTML=`
-      <div class="copy-box" id="notice-text">${noticeText}</div>
-      <button onclick="copyNotice()" class="btn-primary">📋 카카오톡에 붙여넣기용 복사</button>
-      <div style="font-size:12px;color:var(--text2);margin-top:8px;text-align:center">복사 후 카카오톡 단톡방에 바로 붙여넣으세요!</div>`;
+    var unpaidNames=gMembers.filter(function(m){return !dues[m.id+'_'+ym]||!dues[m.id+'_'+ym].paid}).map(function(m){return m.name});
+    var paidNames=paidMembers.map(function(m){return m.name});
+    var unpaidDetail=gMembers.filter(function(m){return !dues[m.id+'_'+ym]||!dues[m.id+'_'+ym].paid}).map(function(m){
+      var months=countUnpaidMonths(m.id,ym);
+      return '  ⚠️ '+m.name+(months>=2?' ('+months+'개월 미납)':'');
+    });
+    var noticeLines=[
+      '📢 ['+g.name+'] '+yr+'년 '+mo+'월 회비 결산 공지',
+      '',
+      '━━━━━━━━━━━━━━━━',
+      '💰 수입 내역',
+      '• 월 회비 ('+g.dues.toLocaleString()+'원 × '+paidMembers.length+'명)',
+      '  = '+duesIncome.toLocaleString()+'원'
+    ];
+    if(gInc.length) gInc.forEach(function(i){noticeLines.push('• '+i.title+': +'+i.amount.toLocaleString()+'원')});
+    noticeLines.push('• 총 수입 합계: +'+totalIncome.toLocaleString()+'원');
+    noticeLines.push('','📋 납부 완료 ('+paidMembers.length+'명)');
+    paidNames.forEach(function(n){noticeLines.push('  ✅ '+n)});
+    if(unpaidNames.length){
+      noticeLines.push('','❌ 미납 ('+unpaidNames.length+'명)');
+      unpaidDetail.forEach(function(n){noticeLines.push(n)});
+    }
+    noticeLines=noticeLines.concat([
+      '','━━━━━━━━━━━━━━━━',
+      '💸 지출 내역'
+    ]);
+    if(gExp.length) gExp.forEach(function(e){noticeLines.push('• '+e.title+': '+e.amount.toLocaleString()+'원')});
+    else noticeLines.push('• 지출 없음');
+    noticeLines.push('  합계: -'+totalExpense.toLocaleString()+'원');
+    noticeLines=noticeLines.concat([
+      '','━━━━━━━━━━━━━━━━',
+      '📊 최종 결산',
+      '• 총 수입: +'+totalIncome.toLocaleString()+'원',
+      '• 총 지출: -'+totalExpense.toLocaleString()+'원',
+      '• 잔액: '+(balance>=0?'+':'')+balance.toLocaleString()+'원',
+      '','감사합니다 🙏','총무 드림'
+    ]);
+    var noticeText=noticeLines.join('\n');
+    document.getElementById('settle-content').innerHTML=
+      '<div class="copy-box" id="notice-text">'+noticeText+'</div>'
+      +'<button onclick="copyNotice()" class="btn-primary">📋 카카오톡에 붙여넣기용 복사</button>'
+      +'<div style="font-size:12px;color:var(--text2);margin-top:8px;text-align:center">복사 후 카카오톡 단톡방에 바로 붙여넣으세요!</div>';
   }
 }
 
 function copyNotice(){
-  const text=document.getElementById('notice-text').innerText;
-  // 방법1: 최신 클립보드 API
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text)
-      .then(()=>showToast('복사됐어요! 카톡에 붙여넣으세요 📋'))
-      .catch(()=>fallbackCopy(text));
-  } else {
-    fallbackCopy(text);
-  }
+  var text=document.getElementById('notice-text').innerText;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){showToast('복사됐어요! 카톡에 붙여넣으세요 📋')}).catch(function(){fallbackCopy(text)});
+  } else {fallbackCopy(text)}
 }
 function fallbackCopy(text){
-  // 방법2: 구형 방식 (갤럭시 호환)
-  const ta=document.createElement('textarea');
-  ta.value=text;
-  ta.style.position='fixed';
-  ta.style.top='0';
-  ta.style.left='0';
-  ta.style.opacity='0';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  ta.setSelectionRange(0,99999);
-  try{
-    const ok=document.execCommand('copy');
-    showToast(ok?'복사됐어요! 카톡에 붙여넣으세요 📋':'복사 실패 — 텍스트를 직접 선택해 주세요');
-  }catch(e){
-    showToast('복사 실패 — 텍스트를 직접 선택해 주세요');
-  }
+  var ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.top='0';ta.style.left='0';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,99999);
+  try{var ok=document.execCommand('copy');showToast(ok?'복사됐어요! 카톡에 붙여넣으세요 📋':'복사 실패 — 텍스트를 직접 선택해 주세요')}
+  catch(e){showToast('복사 실패 — 텍스트를 직접 선택해 주세요')}
   document.body.removeChild(ta);
 }
+function openExpenseModal(gId){fillGroupSelect('ex-group');document.getElementById('ex-group').value=gId;document.getElementById('ex-date').value=document.getElementById('settle-month').value+'-01';openModal('modal-add-expense')}
+function openIncomeModal(gId){fillGroupSelect('in-group');document.getElementById('in-group').value=gId;document.getElementById('in-date').value=document.getElementById('settle-month').value+'-01';openModal('modal-add-income')}
 
-function openExpenseModal(gId){
-  fillGroupSelect('ex-group');
-  document.getElementById('ex-group').value=gId;
-  document.getElementById('ex-date').value=document.getElementById('settle-month').value+'-01';
-  openModal('modal-add-expense');
-}
-
-// ── 모임 관리 페이지 ──────────────────────
+// ── 모임관리 ──
 function renderGroups(){
-  const ym=thisYM();
-  if(!groups.length){
-    document.getElementById('groups-list').innerHTML=`
-      <div class="empty-state"><div class="empty-icon">⚙️</div><p>모임을 추가해 주세요<br><small>오른쪽 아래 + 버튼</small></p></div>`;
-    return;
-  }
-  document.getElementById('groups-list').innerHTML=groups.map(g=>{
-    const gm=members.filter(m=>m.groupId===g.id);
-    const paid=gm.filter(m=>dues[m.id+'_'+ym]?.paid).length;
-    return `<div class="card">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:44px;height:44px;border-radius:12px;background:#E8F0FE;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏅</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:16px;font-weight:700">${g.name}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">${gm.length}명 · 월 회비 ${g.dues.toLocaleString()}원</div>
-          ${g.desc?`<div style="font-size:12px;color:var(--text2)">${g.desc}</div>`:''}
-          <div style="margin-top:6px;display:flex;gap:6px">
-            <span class="badge badge-ok">${paid}명 납부</span>
-            ${gm.length-paid>0?`<span class="badge badge-no">${gm.length-paid}명 미납</span>`:''}
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
-        <button onclick="openEditGroup('${g.id}')" style="flex:1;padding:9px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✏️ 이름·회비 수정</button>
-        <button onclick="deleteGroup('${g.id}')" style="padding:9px 14px;background:#FFEBEE;color:var(--red);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">삭제</button>
-      </div>
-    </div>`;
+  var ym=thisYM();
+  if(!groups.length){document.getElementById('groups-list').innerHTML='<div class="empty-state"><div class="empty-icon">⚙️</div><p>모임을 추가해 주세요<br><small>오른쪽 아래 + 버튼</small></p></div>';return}
+  document.getElementById('groups-list').innerHTML=groups.map(function(g){
+    var gm=members.filter(function(m){return m.groupId===g.id});
+    var paid=gm.filter(function(m){return dues[m.id+'_'+ym]&&dues[m.id+'_'+ym].paid}).length;
+    return '<div class="card">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<div style="width:44px;height:44px;border-radius:12px;background:#E8F0FE;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏅</div>'
+      +'<div style="flex:1"><div style="font-size:16px;font-weight:700">'+g.name+'</div>'
+      +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+gm.length+'명 · 월 회비 '+g.dues.toLocaleString()+'원</div>'
+      +(g.desc?'<div style="font-size:12px;color:var(--text2)">'+g.desc+'</div>':'')
+      +'<div style="margin-top:6px;display:flex;gap:6px">'
+      +'<span class="badge badge-ok">'+paid+'명 납부</span>'
+      +((gm.length-paid)>0?'<span class="badge badge-no">'+(gm.length-paid)+'명 미납</span>':'')
+      +'</div></div></div>'
+      +'<div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">'
+      +'<button onclick="openEditGroup(\''+g.id+'\')" style="flex:1;padding:9px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✏️ 수정</button>'
+      +'<button onclick="deleteGroup(\''+g.id+'\')" style="padding:9px 14px;background:#FFEBEE;color:var(--red);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">삭제</button>'
+      +'</div></div>';
   }).join('');
 }
 function openEditGroup(id){
-  const g=groups.find(g=>g.id===id);
-  if(!g)return;
+  var g=groups.find(function(g){return g.id===id});
+  if(!g) return;
   document.getElementById('edit-g-id').value=id;
   document.getElementById('edit-g-name').value=g.name;
   document.getElementById('edit-g-dues').value=g.dues;
@@ -994,131 +855,178 @@ function openEditGroup(id){
   openModal('modal-edit-group');
 }
 function saveEditGroup(){
-  const id=document.getElementById('edit-g-id').value;
-  const name=document.getElementById('edit-g-name').value.trim();
-  const dues_val=parseInt(document.getElementById('edit-g-dues').value)||0;
-  const desc=document.getElementById('edit-g-desc').value.trim();
+  var id=document.getElementById('edit-g-id').value;
+  var name=document.getElementById('edit-g-name').value.trim();
+  var duesVal=parseInt(document.getElementById('edit-g-dues').value)||0;
+  var desc=document.getElementById('edit-g-desc').value.trim();
   if(!name){showToast('모임 이름을 입력해 주세요');return}
-  const g=groups.find(g=>g.id===id);
-  if(g){g.name=name;g.dues=dues_val;g.desc=desc;}
-  save('groups',groups);
-  closeModal('modal-edit-group');
-  showToast('수정됐어요 ✅');
-  renderGroups();
+  var g=groups.find(function(g){return g.id===id});
+  if(g){g.name=name;g.dues=duesVal;g.desc=desc}
+  save('groups',groups);closeModal('modal-edit-group');showToast('수정됐어요 ✅');renderGroups();
 }
 function deleteGroup(id){
-  const g=groups.find(g=>g.id===id);
-  if(!g)return;
-  const gm=members.filter(m=>m.groupId===id);
-  const msg=gm.length>0
-    ?`"${g.name}" 모임을 삭제할까요?\n\n⚠️ 이 모임의 회원 ${gm.length}명도 함께 삭제됩니다.`
-    :`"${g.name}" 모임을 삭제할까요?`;
-  if(!confirm(msg))return;
-  groups=groups.filter(g=>g.id!==id);
-  members=members.filter(m=>m.groupId!==id);
-  events=events.filter(e=>e.groupId!==id);
-  expenses=expenses.filter(e=>e.groupId!==id);
-  saveAll();
-  showToast(`"${g.name}" 모임이 삭제됐어요`);
-  renderGroups();
+  var g=groups.find(function(g){return g.id===id});
+  if(!g) return;
+  var gm=members.filter(function(m){return m.groupId===id});
+  var msg=gm.length>0?'"'+g.name+'" 모임을 삭제할까요?\n\n⚠️ 이 모임의 회원 '+gm.length+'명도 함께 삭제됩니다.':'"'+g.name+'" 모임을 삭제할까요?';
+  if(!confirm(msg)) return;
+  groups=groups.filter(function(g){return g.id!==id});
+  members=members.filter(function(m){return m.groupId!==id});
+  events=events.filter(function(e){return e.groupId!==id});
+  expenses=expenses.filter(function(e){return e.groupId!==id});
+  incomes=incomes.filter(function(i){return i.groupId!==id});
+  saveAll();showToast('"'+g.name+'" 모임이 삭제됐어요');renderGroups();
 }
 
+// ── CRUD ──
 function addGroup(){
-  const name=document.getElementById('g-name').value.trim();
-  const d=parseInt(document.getElementById('g-dues').value)||0;
-  const desc=document.getElementById('g-desc').value.trim();
+  var name=document.getElementById('g-name').value.trim();
+  var d=parseInt(document.getElementById('g-dues').value)||0;
+  var desc=document.getElementById('g-desc').value.trim();
   if(!name){showToast('모임 이름을 입력해 주세요');return}
-  groups.push({id:uid(),name,dues:d,desc});
-  save('groups',groups);
-  closeModal('modal-add-group');
-  ['g-name','g-dues','g-desc'].forEach(i=>document.getElementById(i).value='');
+  groups.push({id:uid(),name:name,dues:d,desc:desc});
+  save('groups',groups);closeModal('modal-add-group');
+  ['g-name','g-dues','g-desc'].forEach(function(i){document.getElementById(i).value=''});
   showToast('모임이 추가됐어요 🎉');renderAll();
 }
 function addMember(){
-  const name=document.getElementById('m-name').value.trim();
-  const phone=document.getElementById('m-phone').value.trim();
-  const gId=document.getElementById('m-group').value;
-  const role=document.getElementById('m-role').value;
-  const bday=document.getElementById('m-bday').value;
+  var name=document.getElementById('m-name').value.trim();
+  var phone=document.getElementById('m-phone').value.trim();
+  var gId=document.getElementById('m-group').value;
+  var role=document.getElementById('m-role').value;
+  var bday=document.getElementById('m-bday').value;
   if(!name){showToast('이름을 입력해 주세요');return}
   if(!gId){showToast('모임을 선택해 주세요');return}
-  members.push({id:uid(),name,phone,groupId:gId,role,av:avColors[members.length%5],bday});
-  save('members',members);
-  closeModal('modal-add-member');
-  ['m-name','m-phone','m-bday'].forEach(i=>document.getElementById(i).value='');
+  members.push({id:uid(),name:name,phone:phone,groupId:gId,role:role,av:avColors[members.length%5],bday:bday});
+  save('members',members);closeModal('modal-add-member');
+  ['m-name','m-phone','m-bday'].forEach(function(i){document.getElementById(i).value=''});
   showToast(name+'님이 추가됐어요 ✅');renderAll();
 }
-function deleteMember(id){
-  if(!confirm('회원을 삭제할까요?'))return;
-  members=members.filter(m=>m.id!==id);save('members',members);showToast('삭제됐어요');renderAll();
-}
+function deleteMember(id){if(!confirm('회원을 삭제할까요?'))return;members=members.filter(function(m){return m.id!==id});save('members',members);showToast('삭제됐어요');renderAll()}
 function addEvent(){
-  const gId=document.getElementById('e-group').value;
-  const title=document.getElementById('e-title').value.trim();
-  const date=document.getElementById('e-date').value;
-  const time=document.getElementById('e-time').value;
-  const place=document.getElementById('e-place').value.trim();
-  const memo=document.getElementById('e-memo').value.trim();
+  var gId=document.getElementById('e-group').value;
+  var title=document.getElementById('e-title').value.trim();
+  var date=document.getElementById('e-date').value;
+  var time=document.getElementById('e-time').value;
+  var place=document.getElementById('e-place').value.trim();
+  var memo=document.getElementById('e-memo').value.trim();
   if(!title){showToast('제목을 입력해 주세요');return}
   if(!date){showToast('날짜를 선택해 주세요');return}
-  events.push({id:uid(),groupId:gId,title,date,time,place,memo,done:false});
+  events.push({id:uid(),groupId:gId,title:title,date:date,time:time,place:place,memo:memo,done:false});
   save('events',events);closeModal('modal-add-event');
-  ['e-title','e-place','e-memo','e-time'].forEach(i=>document.getElementById(i).value='');
+  ['e-title','e-place','e-memo','e-time'].forEach(function(i){document.getElementById(i).value=''});
   showToast('일정이 추가됐어요 📅');renderAll();
 }
-function deleteEvent(id){if(!confirm('삭제할까요?'))return;events=events.filter(e=>e.id!==id);save('events',events);showToast('삭제됐어요');renderAll()}
-function markEventDone(id){const e=events.find(e=>e.id===id);if(e){e.done=true;save('events',events);showToast('완료 처리됐어요 ✅');renderAll()}}
+function deleteEvent(id){if(!confirm('삭제할까요?'))return;events=events.filter(function(e){return e.id!==id});save('events',events);showToast('삭제됐어요');renderAll()}
+function markEventDone(id){var e=events.find(function(e){return e.id===id});if(e){e.done=true;save('events',events);showToast('완료 처리됐어요 ✅');renderAll()}}
 function addExpense(){
-  const gId=document.getElementById('ex-group').value;
-  const date=document.getElementById('ex-date').value;
-  const title=document.getElementById('ex-title').value.trim();
-  const amount=parseInt(document.getElementById('ex-amount').value)||0;
-  const memo=document.getElementById('ex-memo').value.trim();
+  var gId=document.getElementById('ex-group').value;
+  var date=document.getElementById('ex-date').value;
+  var title=document.getElementById('ex-title').value.trim();
+  var amount=parseInt(document.getElementById('ex-amount').value)||0;
+  var memo=document.getElementById('ex-memo').value.trim();
   if(!title){showToast('항목을 입력해 주세요');return}
   if(!amount){showToast('금액을 입력해 주세요');return}
-  expenses.push({id:uid(),groupId:gId,date,title,amount,memo});
+  expenses.push({id:uid(),groupId:gId,date:date,title:title,amount:amount,memo:memo});
   save('expenses',expenses);closeModal('modal-add-expense');
-  ['ex-title','ex-amount','ex-memo'].forEach(i=>document.getElementById(i).value='');
+  ['ex-title','ex-amount','ex-memo'].forEach(function(i){document.getElementById(i).value=''});
   showToast('지출이 추가됐어요 💸');renderSettle();
 }
-function deleteExpense(id){if(!confirm('삭제할까요?'))return;expenses=expenses.filter(e=>e.id!==id);save('expenses',expenses);showToast('삭제됐어요');renderSettle()}
+function deleteExpense(id){if(!confirm('삭제할까요?'))return;expenses=expenses.filter(function(e){return e.id!==id});save('expenses',expenses);showToast('삭제됐어요');renderSettle()}
+function addIncome(){
+  var gId=document.getElementById('in-group').value;
+  var date=document.getElementById('in-date').value;
+  var title=document.getElementById('in-title').value.trim();
+  var amount=parseInt(document.getElementById('in-amount').value)||0;
+  var memo=document.getElementById('in-memo').value.trim();
+  if(!title){showToast('항목을 입력해 주세요');return}
+  if(!amount){showToast('금액을 입력해 주세요');return}
+  incomes.push({id:uid(),groupId:gId,date:date,title:title,amount:amount,memo:memo});
+  save('incomes',incomes);closeModal('modal-add-income');
+  ['in-title','in-amount','in-memo'].forEach(function(i){document.getElementById(i).value=''});
+  showToast('수입이 추가됐어요 💵');renderSettle();
+}
+function deleteIncome(id){if(!confirm('삭제할까요?'))return;incomes=incomes.filter(function(i){return i.id!==id});save('incomes',incomes);showToast('삭제됐어요');renderSettle()}
+function openAddAnniv(){fillGroupSelect('an-group');openModal('modal-add-anniv')}
+function addAnniv(){
+  var gId=document.getElementById('an-group').value;
+  var title=document.getElementById('an-title').value.trim();
+  var dateVal=document.getElementById('an-date').value.trim();
+  var memo=document.getElementById('an-memo').value.trim();
+  if(!title){showToast('기념일 이름을 입력해 주세요');return}
+  if(!dateVal||!/^\d{2}-\d{2}$/.test(dateVal)){showToast('날짜를 MM-DD 형식으로 입력해 주세요 (예: 06-15)');return}
+  anniversaries.push({id:uid(),groupId:gId,title:title,date:'--'+dateVal,memo:memo});
+  save('anniversaries',anniversaries);closeModal('modal-add-anniv');
+  ['an-title','an-memo','an-date'].forEach(function(i){document.getElementById(i).value=''});
+  showToast('기념일이 추가됐어요 🎉');renderBirthday();
+}
+function deleteAnniv(id){if(!confirm('기념일을 삭제할까요?'))return;anniversaries=anniversaries.filter(function(a){return a.id!==id});save('anniversaries',anniversaries);showToast('삭제됐어요');renderBirthday()}
 
-// 납부
-let payTargetId=null;
+// ── 납부 ──
+var payTargetId=null;
 function openPayModal(memberId){
   payTargetId=memberId;
-  const m=members.find(m=>m.id===memberId);
-  const g=m?groups.find(g=>g.id===m.groupId):null;
+  var m=members.find(function(m){return m.id===memberId});
+  var g=m?groups.find(function(g){return g.id===m.groupId}):null;
   document.getElementById('pay-modal-title').textContent=(m?m.name:'')+' 회비 납부 처리';
   document.getElementById('pay-modal-sub').textContent=g?g.name+' · '+g.dues.toLocaleString()+'원':'';
   document.getElementById('pay-date').value=new Date().toISOString().slice(0,10);
   openModal('modal-pay-dues');
 }
 function confirmPay(){
-  if(!payTargetId)return;
-  const method=document.getElementById('pay-method').value;
-  const date=document.getElementById('pay-date').value;
-  const ym=thisYM();
-  dues[payTargetId+'_'+ym]={paid:true,method,date};
+  if(!payTargetId) return;
+  var method=document.getElementById('pay-method').value;
+  var date=document.getElementById('pay-date').value;
+  var ym=thisYM();
+  dues[payTargetId+'_'+ym]={paid:true,method:method,date:date};
   save('dues',dues);closeModal('modal-pay-dues');showToast('납부 완료 처리됐어요 ✅');renderAll();
 }
-function unpay(memberId){
-  const ym=thisYM();delete dues[memberId+'_'+ym];save('dues',dues);showToast('납부 취소됐어요');renderAll();
+function unpay(memberId){var ym=thisYM();delete dues[memberId+'_'+ym];save('dues',dues);showToast('납부 취소됐어요');renderAll()}
+
+// ── 백업/복원 ──
+function backupData(){
+  var data={groups:groups,members:members,dues:dues,events:events,expenses:expenses,incomes:incomes,anniversaries:anniversaries,backupDate:new Date().toISOString()};
+  var json=JSON.stringify(data,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var date=new Date().toISOString().slice(0,10).replace(/-/g,'');
+  a.href=url;a.download='총무앱_백업_'+date+'.json';a.click();
+  URL.revokeObjectURL(url);showToast('백업 파일이 다운로드됐어요 💾');
+}
+function restoreData(){
+  if(!confirm('백업 파일을 불러오면 현재 데이터가 모두 교체됩니다.\n계속할까요?')) return;
+  var input=document.createElement('input');
+  input.type='file';input.accept='.json';
+  input.onchange=function(e){
+    var file=e.target.files[0];
+    if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=JSON.parse(ev.target.result);
+        if(!data.groups||!data.members){showToast('올바른 백업 파일이 아니에요');return}
+        groups=data.groups||[];members=data.members||[];dues=data.dues||{};
+        events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];
+        saveAll();showToast('복원 완료! ✅');renderAll();
+      }catch(err){showToast('파일을 읽을 수 없어요')}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
 }
 
-// 모달
+// ── 유틸 ──
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 function closeModalOutside(e,el){if(e.target===el)closeModal(el.id)}
 function fillGroupSelect(selId){
-  const sel=document.getElementById(selId);
-  sel.innerHTML=groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+  var sel=document.getElementById(selId);
+  sel.innerHTML=groups.map(function(g){return '<option value="'+g.id+'">'+g.name+'</option>'}).join('');
 }
-
-// 토스트
 function showToast(msg){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2200);
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},2200);
 }
 
 renderHome();
