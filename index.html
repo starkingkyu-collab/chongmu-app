@@ -33,6 +33,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .badge-done{background:#E1F5EE;color:#085041}
 .badge-group{background:#E8F0FE;color:#1B3A6B;font-size:11px;padding:2px 7px}
 .badge-bday{background:#FCE4EC;color:#880E4F;font-size:11px;padding:2px 7px}
+.badge-exempt{background:#FFF8E1;color:#7a5200;font-size:11px;padding:2px 7px}
 .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .summary-card{background:rgba(255,255,255,.12);border-radius:var(--radius-sm);padding:12px}
 .summary-val{font-size:26px;font-weight:700;color:#fff;line-height:1}
@@ -276,10 +277,21 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="modal"><div class="modal-handle"></div>
     <div class="modal-title" id="pay-modal-title">회비 납부 처리</div>
     <div style="font-size:14px;color:var(--text2);margin-bottom:16px" id="pay-modal-sub"></div>
-    <div class="form-group"><label class="form-label">납부 방법</label>
-      <select class="form-select" id="pay-method"><option>계좌이체</option><option>카카오페이</option><option>현금</option><option>토스</option></select>
+    <!-- 면제 체크박스 -->
+    <div style="background:#FFF8E1;border-radius:8px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+      <input type="checkbox" id="pay-exempt" style="width:20px;height:20px;cursor:pointer" onchange="toggleExempt()">
+      <label for="pay-exempt" style="font-size:14px;font-weight:700;color:#7a5200;cursor:pointer">🎫 회비 면제 처리 (이번 달 무료)</label>
     </div>
-    <div class="form-group"><label class="form-label">납부일</label><input class="form-input" id="pay-date" type="date"></div>
+    <div id="pay-normal-fields">
+      <div class="form-group"><label class="form-label">납부 금액 (원)</label>
+        <input class="form-input" id="pay-amount" type="number" placeholder="월 회비 금액 입력" oninput="calcMonths()">
+        <div id="pay-months-preview" style="font-size:13px;color:var(--mint);font-weight:700;margin-top:6px;min-height:20px"></div>
+      </div>
+      <div class="form-group"><label class="form-label">납부 방법</label>
+        <select class="form-select" id="pay-method"><option>계좌이체</option><option>카카오페이</option><option>현금</option><option>토스</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">납부일</label><input class="form-input" id="pay-date" type="date"></div>
+    </div>
     <button class="btn-primary" onclick="confirmPay()">납부 완료 처리</button>
     <button class="btn-secondary" onclick="closeModal('modal-pay-dues')">취소</button>
   </div>
@@ -600,7 +612,7 @@ function renderDues(){
     return '<div class="card"><div style="display:flex;align-items:center;gap:10px;padding:2px 0">'
       +'<div class="avatar av-'+m.av+'">'+m.name[0]+'</div>'
       +'<div class="member-info"><div class="member-name">'+m.name+'</div>'
-      +'<div class="member-sub">'+(g?g.name:'')+(isPaid?' · '+dData.method+' · '+dData.date:'')+'</div></div>'
+      +'<div class="member-sub">'+(g?g.name:'')+(isPaid?' · '+(dData.exempt?'🎫 면제':dData.method+(dData.months&&dData.months>=2?' ('+dData.months+'개월)':''))+' · '+dData.date:'')+'</div></div>'
       +'<div style="text-align:right">'
       +'<div style="font-size:14px;font-weight:700;color:'+(isPaid?'var(--mint)':'var(--red)')+'">'+( g?g.dues.toLocaleString():0)+'원</div>'
       +(isPaid?'<button onclick="unpay(\''+m.id+'\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;margin-top:4px">취소</button>'
@@ -777,7 +789,11 @@ function renderSettle(){
     if(gInc.length) gInc.forEach(function(i){noticeLines.push('• '+i.title+': +'+i.amount.toLocaleString()+'원')});
     noticeLines.push('• 총 수입 합계: +'+totalIncome.toLocaleString()+'원');
     noticeLines.push('','📋 납부 완료 ('+paidMembers.length+'명)');
-    paidNames.forEach(function(n){noticeLines.push('  ✅ '+n)});
+    paidMembers.forEach(function(m){
+      var dData=dues[m.id+'_'+ym];
+      var label=dData&&dData.exempt?'🎫 '+m.name+' (면제)':dData&&dData.months&&dData.months>=2?'✅ '+m.name+' ('+dData.months+'개월)':'✅ '+m.name;
+      noticeLines.push('  '+label);
+    });
     if(unpaidNames.length){
       noticeLines.push('','❌ 미납 ('+unpaidNames.length+'명)');
       unpaidDetail.forEach(function(n){noticeLines.push(n)});
@@ -971,15 +987,65 @@ function openPayModal(memberId){
   document.getElementById('pay-modal-title').textContent=(m?m.name:'')+' 회비 납부 처리';
   document.getElementById('pay-modal-sub').textContent=g?g.name+' · '+g.dues.toLocaleString()+'원':'';
   document.getElementById('pay-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('pay-exempt').checked=false;
+  document.getElementById('pay-normal-fields').style.display='';
+  document.getElementById('pay-months-preview').textContent='';
+  if(g) document.getElementById('pay-amount').value=g.dues;
+  else document.getElementById('pay-amount').value='';
+  calcMonths();
   openModal('modal-pay-dues');
+}
+function toggleExempt(){
+  var isExempt=document.getElementById('pay-exempt').checked;
+  document.getElementById('pay-normal-fields').style.display=isExempt?'none':'';
+}
+function calcMonths(){
+  var m=members.find(function(m){return m.id===payTargetId});
+  var g=m?groups.find(function(g){return g.id===m.groupId}):null;
+  if(!g) return;
+  var amount=parseInt(document.getElementById('pay-amount').value)||0;
+  if(amount<=0){document.getElementById('pay-months-preview').textContent='';return}
+  var months=Math.floor(amount/g.dues);
+  var remainder=amount%g.dues;
+  var preview='';
+  if(months<=0){preview='⚠️ 월 회비('+g.dues.toLocaleString()+'원)보다 적어요'}
+  else if(months===1&&remainder===0){preview='✅ 이번 달 1개월 납부'}
+  else if(months>=2){preview='✅ '+months+'개월치 납부 처리됩니다'+(remainder>0?' ('+remainder.toLocaleString()+'원 초과분은 다음 달 이월)':'');}
+  document.getElementById('pay-months-preview').textContent=preview;
 }
 function confirmPay(){
   if(!payTargetId) return;
-  var method=document.getElementById('pay-method').value;
-  var date=document.getElementById('pay-date').value;
+  var m=members.find(function(m){return m.id===payTargetId});
+  var g=m?groups.find(function(g){return g.id===m.groupId}):null;
+  var isExempt=document.getElementById('pay-exempt').checked;
+  var date=isExempt?new Date().toISOString().slice(0,10):document.getElementById('pay-date').value;
+  var method=isExempt?'면제':document.getElementById('pay-method').value;
   var ym=thisYM();
-  dues[payTargetId+'_'+ym]={paid:true,method:method,date:date};
-  save('dues',dues);closeModal('modal-pay-dues');showToast('납부 완료 처리됐어요 ✅');renderAll();
+
+  if(isExempt){
+    // 면제 처리: 이번 달만
+    dues[payTargetId+'_'+ym]={paid:true,method:'면제',date:date,exempt:true};
+    save('dues',dues);closeModal('modal-pay-dues');
+    showToast('면제 처리됐어요 🎫');renderAll();
+    return;
+  }
+
+  var amount=parseInt(document.getElementById('pay-amount').value)||0;
+  if(!g||amount<=0){showToast('금액을 입력해 주세요');return}
+  var months=Math.floor(amount/g.dues);
+  if(months<=0){showToast('월 회비('+g.dues.toLocaleString()+'원)보다 적은 금액이에요');return}
+
+  // 이번 달부터 months개월치 납부 처리
+  var d=new Date(ym+'-01');
+  for(var i=0;i<months;i++){
+    var key=payTargetId+'_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    dues[key]={paid:true,method:method,date:date,amount:amount,months:months};
+    d.setMonth(d.getMonth()+1);
+  }
+  save('dues',dues);closeModal('modal-pay-dues');
+  if(months>=2) showToast(months+'개월치 납부 처리됐어요 ✅');
+  else showToast('납부 완료 처리됐어요 ✅');
+  renderAll();
 }
 function unpay(memberId){var ym=thisYM();delete dues[memberId+'_'+ym];save('dues',dues);showToast('납부 취소됐어요');renderAll()}
 
