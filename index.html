@@ -1156,8 +1156,6 @@ function renderSettle(){
     var prevExp=expenses.filter(function(e){return e.groupId===gId&&e.date.slice(0,7)<beforeYM}).reduce(function(s,e){return s+e.amount},0);
     return prevIncome+prevExtra-prevExp;
   }
-  var carryOver=calcCarryOver(gId, ymStart);
-  var totalBalance=carryOver+balance; // 누적 최종 잔액
 
 
   var gMembers=sortedMembers(members.filter(function(m){return m.groupId===gId}));
@@ -1185,7 +1183,7 @@ function renderSettle(){
       if(already) return;
       // 실제 납부 금액 계산
       var paidMonths=d.months||1;
-      var paidAmount=paidMonths*g.dues;
+      var paidAmount=paidMonths*(g?g.dues:0);
       duesIncomeDetail.push({memberId:m.id,memberName:m.name,ym:k.replace(m.id+'_',''),amount:paidAmount,date:d.date,months:paidMonths,method:d.method});
     });
   });
@@ -1196,6 +1194,8 @@ function renderSettle(){
   var gExp=expenses.filter(function(e){return e.groupId===gId&&ymRange.some(function(y){return e.date.startsWith(y)})});
   var totalExpense=gExp.reduce(function(s,e){return s+e.amount},0);
   var balance=totalIncome-totalExpense;
+  var carryOver=calcCarryOver(gId, ymStart);
+  var totalBalance=carryOver+balance; // 누적 최종 잔액
   var yr=ymStart.split('-')[0];
   var mo=parseInt(ymStart.split('-')[1]);
   var moEnd=parseInt(ymEnd.split('-')[1]);
@@ -1208,7 +1208,7 @@ function renderSettle(){
       var totalUnpaidAmt=0;
       var rows=unpaidM.map(function(m){
         var months=countUnpaidMonths(m.id,ymRange[ymRange.length-1]);
-        var owed=months*g.dues;
+        var mGr=groups.find(function(gr){return gr.id===m.groupId});var owed=months*(mGr?mGr.dues:0);
         totalUnpaidAmt+=owed;
         var color=months>=3?'#B71C1C':months>=2?'#E65100':'#7a5200';
         var bg=months>=3?'#FFEBEE':months>=2?'#FFF3E0':'#FFF8E1';
@@ -1281,14 +1281,14 @@ function renderSettle(){
       return ymRange.some(function(y){return !dues[m.id+'_'+y]||!dues[m.id+'_'+y].paid});
     });
     var unpaidDetail=unpaidMembers.map(function(m){
-      // 실제 누적 미납 개월 수 (가입 이후 ~ 결산 기준월, 비연속 포함)
+      var mGroup=groups.find(function(gr){return gr.id===m.groupId});
+      var mDues=mGroup?mGroup.dues:0;
       var months=totalUnpaidCount(m.id,lastYM,m.groupId);
-      var totalAmt=months*g.dues;
+      var totalAmt=months*mDues;
       var label='  ⚠️ '+m.name;
       if(months>=1) label+=' ('+months+'개월 미납 · '+totalAmt.toLocaleString()+'원)';
       return label;
     });
-
     // 납부일 포맷 함수 (M.D 형식)
     function fmtDate(dateStr){
       if(!dateStr) return '';
