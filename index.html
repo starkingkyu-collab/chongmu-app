@@ -335,6 +335,9 @@ function saveAll(){
   save('groups',groups);save('members',members);save('events',events);
   save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);
 }
+function sortedMembers(arr){
+  return arr.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ko')});
+}
 function thisYM(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function prevYM(){var d=new Date();d.setMonth(d.getMonth()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function uid(){return 'id'+Date.now()+Math.random().toString(36).slice(2,6)}
@@ -458,7 +461,7 @@ function renderHome(){
   document.getElementById('home-events').innerHTML=evHtml||'<div class="card" style="color:var(--text2);font-size:14px;text-align:center;padding:20px">예정된 일정이 없어요</div>';
 
   // 미납 회원
-  var unpaid=members.filter(function(m){return !dues[m.id+'_'+ym]||!dues[m.id+'_'+ym].paid});
+  var unpaid=sortedMembers(members.filter(function(m){return !dues[m.id+'_'+ym]||!dues[m.id+'_'+ym].paid}));
   var uh='';
   if(unpaid.length){
     uh='<div class="alert-box">⚠️ '+ym+' 미납 '+unpaid.length+'명</div>';
@@ -553,7 +556,7 @@ function renderBirthday(){
     +(otherA.length?'<div class="section-label">그 외 기념일</div>'+otherA.map(annivCard).join(''):'')
     +'<button onclick="openAddAnniv()" class="btn-secondary" style="margin-top:4px">+ 기념일 추가</button>';
 
-  var noBday=members.filter(function(m){return !m.bday});
+  var noBday=sortedMembers(members.filter(function(m){return !m.bday}));
   document.getElementById('bday-all-list').innerHTML=noBday.length?
     '<div class="section-label">생일 미등록 회원 ('+noBday.length+'명)</div>'
     +'<div class="card" style="color:var(--text2);font-size:13px">'
@@ -566,7 +569,7 @@ var memberFilter='all';
 function renderMembers(){
   var chips=[{id:'all',name:'전체'}].concat(groups);
   document.getElementById('member-group-chips').innerHTML=chips.map(function(g){return '<div class="chip'+(memberFilter===g.id?' sel':'')+'" onclick="setMemberFilter(\''+g.id+'\')">'+g.name+'</div>'}).join('');
-  var filtered=memberFilter==='all'?members:members.filter(function(m){return m.groupId===memberFilter});
+  var filtered=sortedMembers(memberFilter==='all'?members:members.filter(function(m){return m.groupId===memberFilter}));
   document.getElementById('member-count-label').textContent='전체 '+members.length+'명 · '+groups.length+'개 모임';
   if(!filtered.length){document.getElementById('member-list').innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><p>회원을 추가해 주세요</p></div>';return}
   var ym=thisYM();
@@ -594,7 +597,7 @@ function renderDues(){
   document.getElementById('dues-month-label').textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월 회비 현황';
   var chips=[{id:'all',name:'전체'}].concat(groups);
   document.getElementById('dues-group-chips').innerHTML=chips.map(function(g){return '<div class="chip'+(duesFilter===g.id?' sel':'')+'" onclick="setDuesFilter(\''+g.id+'\')">'+g.name+'</div>'}).join('');
-  var filtered=duesFilter==='all'?members:members.filter(function(m){return m.groupId===duesFilter});
+  var filtered=sortedMembers(duesFilter==='all'?members:members.filter(function(m){return m.groupId===duesFilter}));
   if(!filtered.length){document.getElementById('dues-list').innerHTML='<div class="empty-state"><div class="empty-icon">💰</div><p>회원을 추가해 주세요</p></div>';return}
   var paid=filtered.filter(function(m){return dues[m.id+'_'+ym]&&dues[m.id+'_'+ym].paid});
   var totalExpect=filtered.reduce(function(s,m){var g=groups.find(function(g){return g.id===m.groupId});return s+(g?g.dues:0)},0);
@@ -687,7 +690,7 @@ function renderSettle(){
   if(!gId||!ym) return;
   var g=groups.find(function(g){return g.id===gId});
   if(!g) return;
-  var gMembers=members.filter(function(m){return m.groupId===gId});
+  var gMembers=sortedMembers(members.filter(function(m){return m.groupId===gId}));
   var paidMembers=gMembers.filter(function(m){return dues[m.id+'_'+ym]&&dues[m.id+'_'+ym].paid});
   var duesIncome=paidMembers.length*g.dues;
   var gInc=incomes.filter(function(i){return i.groupId===gId&&i.date.startsWith(ym)});
