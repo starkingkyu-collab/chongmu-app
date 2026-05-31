@@ -255,6 +255,22 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
 </div>
 
+<!-- 모달: 회원수정 -->
+<div class="modal-overlay" id="modal-edit-member" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">회원 수정</div>
+    <input type="hidden" id="edit-m-id">
+    <div class="form-group"><label class="form-label">이름</label><input class="form-input" id="edit-m-name" placeholder="홍길동"></div>
+    <div class="form-group"><label class="form-label">연락처</label><input class="form-input" id="edit-m-phone" placeholder="010-1234-5678" type="tel"></div>
+    <div class="form-group"><label class="form-label">모임 선택</label><select class="form-select" id="edit-m-group"></select></div>
+    <div class="form-group"><label class="form-label">직책</label>
+      <select class="form-select" id="edit-m-role"><option>회원</option><option>회장</option><option>부회장</option><option>총무</option><option>감사</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">🎂 생년월일 (선택)</label><input class="form-input" id="edit-m-bday" type="date"></div>
+    <button class="btn-primary" onclick="saveEditMember()">저장</button>
+    <button class="btn-secondary" onclick="closeModal('modal-edit-member')">취소</button>
+  </div>
+</div>
+
 <!-- 모달: 일정추가 -->
 <div class="modal-overlay" id="modal-add-event" onclick="closeModalOutside(event,this)">
   <div class="modal"><div class="modal-handle"></div><div class="modal-title">일정 추가</div>
@@ -659,6 +675,7 @@ function renderMembers(){
       +'<div style="margin-top:3px">'+(g?'<span class="badge badge-group">'+g.name+'</span>':'')+'</div></div>'
       +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'
       +'<span class="badge '+(isPaid?'badge-ok':'badge-no')+'">'+(isPaid?'납부':'미납')+'</span>'
+      +'<button style="font-size:11px;padding:8px 12px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;font-weight:700" data-mid="'+m.id+'" onclick="openEditMember(this.dataset.mid)">수정</button>'
       +'<button class="btn-danger" style="font-size:11px;padding:8px 12px" onclick="deleteMember(\''+m.id+'\')">삭제</button>'
       +'</div></div></div>';
   }).join('');
@@ -1301,8 +1318,9 @@ function renderSettle(){
       var mDues=mGroup?mGroup.dues:0;
       var months=totalUnpaidCount(m.id,lastYM,m.groupId);
       var totalAmt=months*mDues;
-      var label='  ⚠️ '+m.name;
-      if(months>=1) label+=' ('+months+'개월 미납 · '+totalAmt.toLocaleString()+'원)';
+      var phone='';if(m.phone) phone=' ('+m.phone+')';
+      var label='  ⚠️ '+m.name+phone;
+      if(months>=1) label+=' → '+months+'개월 미납 · '+totalAmt.toLocaleString()+'원';
       return label;
     });
     // 납부일 포맷 함수 (M.D 형식)
@@ -1336,7 +1354,9 @@ function renderSettle(){
     if(!isMultiMonth){
       // 단월: 이름 + 금액 + 납부일
       duesIncomeDetail.forEach(function(x){
-        var lbl='• '+x.memberName+(x.months>1?' ('+x.months+'개월)':'');
+        var mObj=members.find(function(m){return m.id===x.memberId});
+        var phone='';if(mObj&&mObj.phone) phone=' ('+mObj.phone+')';
+        var lbl='• '+x.memberName+phone+(x.months>1?' ['+x.months+'개월]':'');
         var dt=x.date?'  '+fmtDate(x.date):'';
         noticeLines.push(lbl+' '+x.amount.toLocaleString()+'원'+dt);
       });
@@ -1551,6 +1571,33 @@ function addMember(){
   showToast(name+'님이 추가됐어요 ✅');renderAll();
 }
 function deleteMember(id){if(!confirm('회원을 삭제할까요?'))return;members=members.filter(function(m){return m.id!==id});save('members',members);showToast('삭제됐어요');renderAll()}
+function openEditMember(id){
+  var m=members.find(function(m){return m.id===id});
+  if(!m) return;
+  document.getElementById('edit-m-id').value=id;
+  document.getElementById('edit-m-name').value=m.name||'';
+  document.getElementById('edit-m-phone').value=m.phone||'';
+  document.getElementById('edit-m-bday').value=m.bday||'';
+  document.getElementById('edit-m-role').value=m.role||'회원';
+  fillGroupSelect('edit-m-group');
+  document.getElementById('edit-m-group').value=m.groupId||'';
+  openModal('modal-edit-member');
+}
+function saveEditMember(){
+  var id=document.getElementById('edit-m-id').value;
+  var name=document.getElementById('edit-m-name').value.trim();
+  var phone=document.getElementById('edit-m-phone').value.trim();
+  var groupId=document.getElementById('edit-m-group').value;
+  var role=document.getElementById('edit-m-role').value;
+  var bday=document.getElementById('edit-m-bday').value;
+  if(!name){showToast('이름을 입력해 주세요');return}
+  var m=members.find(function(m){return m.id===id});
+  if(m){m.name=name;m.phone=phone;m.groupId=groupId;m.role=role;m.bday=bday;}
+  save('members',members);
+  closeModal('modal-edit-member');
+  showToast(name+'님 정보가 수정됐어요 ✅');
+  renderAll();
+}
 function addEvent(){
   var gId=document.getElementById('e-group').value;
   var title=document.getElementById('e-title').value.trim();
