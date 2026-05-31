@@ -916,13 +916,34 @@ ${gExpenses.length?gExpenses.map(e=>`• ${e.title}: ${e.amount.toLocaleString()
 
 function copyNotice(){
   const text=document.getElementById('notice-text').innerText;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(()=>showToast('복사됐어요! 카톡에 붙여넣으세요 📋'));
+  // 방법1: 최신 클립보드 API
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text)
+      .then(()=>showToast('복사됐어요! 카톡에 붙여넣으세요 📋'))
+      .catch(()=>fallbackCopy(text));
   } else {
-    const ta=document.createElement('textarea');
-    ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-    showToast('복사됐어요! 카톡에 붙여넣으세요 📋');
+    fallbackCopy(text);
   }
+}
+function fallbackCopy(text){
+  // 방법2: 구형 방식 (갤럭시 호환)
+  const ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed';
+  ta.style.top='0';
+  ta.style.left='0';
+  ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0,99999);
+  try{
+    const ok=document.execCommand('copy');
+    showToast(ok?'복사됐어요! 카톡에 붙여넣으세요 📋':'복사 실패 — 텍스트를 직접 선택해 주세요');
+  }catch(e){
+    showToast('복사 실패 — 텍스트를 직접 선택해 주세요');
+  }
+  document.body.removeChild(ta);
 }
 
 function openExpenseModal(gId){
