@@ -476,7 +476,14 @@ function handleFab(){
 function renderAll(){
   if(curPage==='home')     renderHome();
   if(curPage==='members')  renderMembers();
-  if(curPage==='dues')     renderDues();
+  if(curPage==='dues'){
+    // 탭 진입 시 월 초기값 보장
+    var ds=document.getElementById('dues-start-month');
+    var de=document.getElementById('dues-end-month');
+    if(ds&&!ds.value) ds.value=thisYM();
+    if(de&&!de.value) de.value=thisYM();
+    renderDues();
+  }
   if(curPage==='schedule') renderSchedule();
   if(curPage==='birthday') renderBirthday();
   if(curPage==='settle')   initSettle();
@@ -661,15 +668,14 @@ function setMemberFilter(id){memberFilter=id;renderMembers()}
 // ── 회비 ──
 var duesFilter='all';
 function renderDues(){
-  var d=new Date();
-  // 시작/종료월 초기화
+  // 시작/종료월 초기화 - null 안전 처리
   var dsEl=document.getElementById('dues-start-month');
   var deEl=document.getElementById('dues-end-month');
-  if(!dsEl.value) dsEl.value=thisYM();
-  if(!deEl.value) deEl.value=thisYM();
-  var ymStart=dsEl.value, ymEnd=deEl.value;
+  if(!dsEl||!deEl){setTimeout(renderDues,100);return;} // 아직 DOM 로딩 안됐으면 재시도
+  if(!dsEl.value||dsEl.value==='') dsEl.value=thisYM();
+  if(!deEl.value||deEl.value==='') deEl.value=thisYM();
+  var ymStart=dsEl.value||thisYM(), ymEnd=deEl.value||thisYM();
   if(ymEnd<ymStart) ymEnd=ymStart;
-
   // 월 범위 생성
   var ymRange=[];
   var rd=new Date(ymStart+'-01'), endD=new Date(ymEnd+'-01');
@@ -736,6 +742,7 @@ function renderDues(){
         } else {
           cellContent='<span class="dues-cell-no" '+ca+'>미납</span>';
         }
+        tableHtml+='<td>'+cellContent+'</td>';
       });
       tableHtml+='</tr>';
     });
