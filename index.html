@@ -287,21 +287,29 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <!-- 면제 체크박스 -->
     <div style="background:#FFF8E1;border-radius:8px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
       <input type="checkbox" id="pay-exempt" style="width:20px;height:20px;cursor:pointer" onchange="toggleExempt()">
-      <label for="pay-exempt" style="font-size:14px;font-weight:700;color:#7a5200;cursor:pointer">🎫 회비 면제 처리 (이번 달 무료)</label>
+      <label for="pay-exempt" style="font-size:14px;font-weight:700;color:#7a5200;cursor:pointer">🎫 회비 면제 처리</label>
     </div>
     <div id="pay-normal-fields">
-      <div class="form-group"><label class="form-label">📅 납부 적용 시작 월</label>
+      <div class="form-group"><label class="form-label">📅 적용 시작 월</label>
         <input class="form-input" type="month" id="pay-start-month" oninput="calcMonths()">
-        <div style="font-size:12px;color:var(--text2);margin-top:4px">과거 달 납부 시 해당 월로 변경하세요</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">과거 달 적용 시 해당 월로 변경하세요</div>
       </div>
-      <div class="form-group"><label class="form-label">납부 금액 (원)</label>
+      <!-- 면제 개월수 (면제 시에만 표시) -->
+      <div class="form-group" id="pay-exempt-months-group" style="display:none">
+        <label class="form-label">면제 개월수</label>
+        <input class="form-input" id="pay-exempt-months" type="number" value="1" min="1" placeholder="예) 3" oninput="calcExemptMonths()">
+        <div id="pay-exempt-preview" style="font-size:13px;color:var(--amber);font-weight:700;margin-top:6px;min-height:20px"></div>
+      </div>
+      <!-- 납부 금액 (납부 시에만 표시) -->
+      <div class="form-group" id="pay-amount-group">
+        <label class="form-label">납부 금액 (원)</label>
         <input class="form-input" id="pay-amount" type="number" placeholder="월 회비 금액 입력" oninput="calcMonths()">
         <div id="pay-months-preview" style="font-size:13px;color:var(--mint);font-weight:700;margin-top:6px;min-height:20px"></div>
       </div>
-      <div class="form-group"><label class="form-label">납부 방법</label>
+      <div class="form-group" id="pay-method-group"><label class="form-label">납부 방법</label>
         <select class="form-select" id="pay-method"><option>계좌이체</option><option>카카오페이</option><option>현금</option><option>토스</option></select>
       </div>
-      <div class="form-group"><label class="form-label">납부일</label><input class="form-input" id="pay-date" type="date"></div>
+      <div class="form-group" id="pay-date-group"><label class="form-label">납부일</label><input class="form-input" id="pay-date" type="date"></div>
     </div>
     <button class="btn-primary" onclick="confirmPay()">납부 완료 처리</button>
     <button class="btn-secondary" onclick="closeModal('modal-pay-dues')">취소</button>
@@ -742,10 +750,33 @@ function renderSettle(){
   var gMembers=sortedMembers(members.filter(function(m){return m.groupId===gId}));
 
   // 납부 회원: 범위 내 모든 월 납부한 회원
+  // 납부 회원: 결산 기간 내 해당 월 납부된 회원 (미리보기/미납 표시용)
   var paidMembers=gMembers.filter(function(m){
     return ymRange.every(function(y){return dues[m.id+'_'+y]&&dues[m.id+'_'+y].paid});
   });
-  var duesIncome=paidMembers.length*g.dues*ymRange.length;
+
+  // 실제 수입: 납부일(date)이 결산 기간 내에 있는 모든 dues 합산 (통장 기준)
+  // 예시 - 4월에 12개월치 납부 → 4월 결산에 12개월 금액 전부 수입으로 잡힘
+  var duesIncomeDetail=[]; // {memberId, memberName, ym, amount, date, months}
+  gMembers.forEach(function(m){
+    Object.keys(dues).forEach(function(k){
+      if(k.indexOf(m.id+'_')!==0) return;
+      var d=dues[k];
+      if(!d||!d.paid||d.exempt) return;
+      // 납부일이 결산 기간 내에 있는지 확인
+      if(!d.date) return;
+      var payYM=d.date.slice(0,7); // 납부일의 년-월
+      if(!ymRange.some(function(y){return y===payYM})) return;
+      // 이미 같은 날짜로 추가된 항목인지 확인 (다개월 납부는 한 번만 집계)
+      var already=duesIncomeDetail.some(function(x){return x.memberId===m.id&&x.date===d.date});
+      if(already) return;
+      // 실제 납부 금액 계산
+      var paidMonths=d.months||1;
+      var paidAmount=paidMonths*g.dues;
+      duesIncomeDetail.push({memberId:m.id,memberName:m.name,ym:k.replace(m.id+'_',''),amount:paidAmount,date:d.date,months:paidMonths,method:d.method});
+    });
+  });
+  var duesIncome=duesIncomeDetail.reduce(function(s,x){return s+x.amount},0);
   var gInc=incomes.filter(function(i){return i.groupId===gId&&ymRange.some(function(y){return i.date.startsWith(y)})});
   var extraIncome=gInc.reduce(function(s,i){return s+i.amount},0);
   var totalIncome=duesIncome+extraIncome;
@@ -788,8 +819,8 @@ function renderSettle(){
       +'<div style="font-size:12px;opacity:.75;margin-top:3px">'+(balance>=0?'잉여금':'적자')+'</div>'
       +'</div>'
       +'<div class="card">'
-      +'<div style="font-size:13px;font-weight:700;color:var(--mint);margin-bottom:8px">💰 수입</div>'
-      +'<div class="settle-row"><span style="color:var(--text2)">회비 ('+paidMembers.length+'명 × '+g.dues.toLocaleString()+'원)</span><span style="font-weight:700;color:var(--mint)">+'+duesIncome.toLocaleString()+'원</span></div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--mint);margin-bottom:8px">💰 수입 (납부일 기준)</div>'
+      +duesIncomeDetail.map(function(x){var lbl=x.memberName+(x.months>1?' ('+x.months+'개월)':'');var dt=x.date?'  '+fmtDate(x.date):'';return '<div class="settle-row"><span style="color:var(--text2)">'+lbl+dt+'</span><span style="font-weight:700;color:var(--mint)">+'+x.amount.toLocaleString()+'원</span></div>';}).join('')+(duesIncomeDetail.length===0?'<div class="settle-row"><span style="color:var(--text2)">이번 기간 납부 없음</span><span>-</span></div>':'')
       +gInc.map(function(i){return '<div class="settle-row"><span style="color:var(--text2)">'+i.title+'</span><span style="font-weight:700;color:var(--mint)">+'+i.amount.toLocaleString()+'원</span></div>'}).join('')
       +'<div class="settle-row" style="border-top:1.5px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">총 수입</span><span style="font-weight:700;color:var(--mint)">+'+totalIncome.toLocaleString()+'원</span></div>'
       +'</div>'
@@ -866,27 +897,20 @@ function renderSettle(){
       '📢 ['+g.name+'] '+periodLabel+' 회비 결산 공지',
       '',
       '━━━━━━━━━━━━━━━━',
-      '💰 수입 내역',
-      '• 월 회비 ('+g.dues.toLocaleString()+'원 × '+paidMembers.length+'명'+(isMultiMonth?' × '+ymRange.length+'개월':'')+')' ,
-      '  = '+duesIncome.toLocaleString()+'원'
+      '💰 수입 내역 (납부일 기준)',
     ];
+    // 납부일 기준 상세 수입 내역
+    duesIncomeDetail.forEach(function(x){var lbl='• '+x.memberName+(x.months>1?' ('+x.months+'개월)':'');var dt=x.date?'  '+fmtDate(x.date):'';noticeLines.push(lbl+' '+x.amount.toLocaleString()+'원'+dt);});
     if(gInc.length) gInc.forEach(function(i){noticeLines.push('• '+i.title+': +'+i.amount.toLocaleString()+'원')});
     noticeLines.push('• 총 수입 합계: +'+totalIncome.toLocaleString()+'원');
-    noticeLines.push('','📋 납부 완료 ('+paidMembers.length+'명)');
-    paidMembers.forEach(function(m){
-      // 납부일: 범위 내 첫 번째 월 기준
-      var firstDData=null;
-      for(var i=0;i<ymRange.length;i++){
-        var d=dues[m.id+'_'+ymRange[i]];
-        if(d&&d.paid){firstDData=d;break;}
-      }
-      var dateStr=firstDData&&!firstDData.exempt?'  '+fmtDate(firstDData.date):'';
-      var label='';
-      if(firstDData&&firstDData.exempt) label='🎫 '+m.name+' (면제)';
-      else if(firstDData&&firstDData.months&&firstDData.months>=2) label='✅ '+m.name+' ('+firstDData.months+'개월)'+dateStr;
-      else label='✅ '+m.name+dateStr;
+    // 납부일 기준 실제 납부 내역
+    noticeLines.push('','📋 납부 완료 ('+duesIncomeDetail.length+'건)');
+    duesIncomeDetail.slice().sort(function(a,b){return a.memberName.localeCompare(b.memberName,'ko')}).forEach(function(x){
+      var dateStr=x.date?'  '+fmtDate(x.date):'';
+      var label='✅ '+x.memberName+(x.months>1?' ('+x.months+'개월)':'')+dateStr;
       noticeLines.push('  '+label);
     });
+
     if(unpaidMembers.length){
       noticeLines.push('','❌ 미납 ('+unpaidMembers.length+'명)');
       unpaidDetail.forEach(function(n){noticeLines.push(n)});
@@ -1152,6 +1176,12 @@ function openPayModal(memberId){
   document.getElementById('pay-exempt').checked=false;
   document.getElementById('pay-normal-fields').style.display='';
   document.getElementById('pay-months-preview').textContent='';
+  document.getElementById('pay-exempt-months').value='1';
+  document.getElementById('pay-exempt-preview').textContent='';
+  document.getElementById('pay-exempt-months-group').style.display='none';
+  ['pay-amount-group','pay-method-group','pay-date-group'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.style.display='';
+  });
   document.getElementById('pay-start-month').value=thisYM();
   if(g) document.getElementById('pay-amount').value=g.dues;
   else document.getElementById('pay-amount').value='';
@@ -1160,7 +1190,15 @@ function openPayModal(memberId){
 }
 function toggleExempt(){
   var isExempt=document.getElementById('pay-exempt').checked;
-  document.getElementById('pay-normal-fields').style.display=isExempt?'none':'';
+  // 면제 시 금액/납부방법/납부일 숨기고, 적용월만 보이게
+  var fields=['pay-amount-group','pay-method-group','pay-date-group'];
+  fields.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.style.display=isExempt?'none':'';
+  });
+  // 면제 개월수 입력 표시
+  var exemptGroup=document.getElementById('pay-exempt-months-group');
+  if(exemptGroup) exemptGroup.style.display=isExempt?'':'none';
 }
 function calcMonths(){
   var m=members.find(function(m){return m.id===payTargetId});
@@ -1173,7 +1211,23 @@ function calcMonths(){
   var remainder=amount%g.dues;
   var preview='';
   // 시작월부터 months개월 목록 생성
-  function getMonthList(ym,cnt){
+  function calcExemptMonths(){
+  var m=members.find(function(m){return m.id===payTargetId});
+  var startYM=document.getElementById('pay-start-month').value||thisYM();
+  var months=parseInt(document.getElementById('pay-exempt-months').value)||1;
+  var ym0=startYM.split('-');
+  var preview='';
+  if(months===1){
+    preview='🎫 '+parseInt(ym0[0])+'년 '+parseInt(ym0[1])+'월 면제';
+  } else {
+    var d=new Date(startYM+'-01');
+    d.setMonth(d.getMonth()+months-1);
+    var endLabel=d.getFullYear()+'년 '+(d.getMonth()+1)+'월';
+    preview='🎫 '+parseInt(ym0[0])+'년 '+parseInt(ym0[1])+'월 ~ '+endLabel+' ('+months+'개월) 면제';
+  }
+  document.getElementById('pay-exempt-preview').textContent=preview;
+}
+function getMonthList(ym,cnt){
     var list=[], d=new Date(ym+'-01');
     for(var i=0;i<cnt;i++){
       list.push(d.getFullYear()+'년 '+(d.getMonth()+1)+'월');
@@ -1203,10 +1257,18 @@ function confirmPay(){
   var ym=isExempt?thisYM():(document.getElementById('pay-start-month').value||thisYM());
 
   if(isExempt){
-    // 면제 처리: 이번 달만
-    dues[payTargetId+'_'+ym]={paid:true,method:'면제',date:date,exempt:true};
+    // 면제 처리: 시작월부터 지정 개월수만큼
+    var exemptMonths=parseInt(document.getElementById('pay-exempt-months').value)||1;
+    var d=new Date(ym+'-01');
+    for(var ei=0;ei<exemptMonths;ei++){
+      var eKey=payTargetId+'_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      dues[eKey]={paid:true,method:'면제',date:new Date().toISOString().slice(0,10),exempt:true};
+      d.setMonth(d.getMonth()+1);
+    }
     save('dues',dues);closeModal('modal-pay-dues');
-    showToast('면제 처리됐어요 🎫');renderAll();
+    if(exemptMonths>=2) showToast(exemptMonths+'개월 면제 처리됐어요 🎫');
+    else showToast('면제 처리됐어요 🎫');
+    renderAll();
     return;
   }
 
