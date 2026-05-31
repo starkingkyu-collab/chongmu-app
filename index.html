@@ -251,6 +251,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="form-group"><label class="form-label">모임 이름</label><input class="form-input" id="g-name" placeholder="예) 항공친목회"></div>
     <div class="form-group"><label class="form-label">월 회비 (원)</label><input class="form-input" id="g-dues" type="number" placeholder="예) 30000"></div>
     <div class="form-group"><label class="form-label">설명 (선택)</label><input class="form-input" id="g-desc" placeholder="예) 육군 항공 준위 친목모임"></div>
+    <div class="form-group"><label class="form-label">💳 정산 계좌번호 (선택)</label><input class="form-input" id="g-account" placeholder="예) 카카오뱅크 3333-01-1234567 홍길동"></div>
     <button class="btn-primary" onclick="addGroup()">모임 추가</button>
     <button class="btn-secondary" onclick="closeModal('modal-add-group')">취소</button>
   </div>
@@ -263,6 +264,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="form-group"><label class="form-label">모임 이름</label><input class="form-input" id="edit-g-name"></div>
     <div class="form-group"><label class="form-label">월 회비 (원)</label><input class="form-input" id="edit-g-dues" type="number"></div>
     <div class="form-group"><label class="form-label">설명 (선택)</label><input class="form-input" id="edit-g-desc"></div>
+    <div class="form-group"><label class="form-label">💳 정산 계좌번호 (선택)</label><input class="form-input" id="edit-g-account" placeholder="예) 카카오뱅크 3333-01-1234567 홍길동"></div>
     <button class="btn-primary" onclick="saveEditGroup()">저장</button>
     <button class="btn-secondary" onclick="closeModal('modal-edit-group')">취소</button>
   </div>
@@ -1557,6 +1559,7 @@ function renderGroups(){
       +'<div style="flex:1"><div style="font-size:16px;font-weight:700">'+g.name+'</div>'
       +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+gm.length+'명 · 월 회비 '+g.dues.toLocaleString()+'원</div>'
       +(g.desc?'<div style="font-size:12px;color:var(--text2)">'+g.desc+'</div>':'')
+      +(g.account?'<div style="font-size:12px;color:var(--text2);margin-top:2px">💳 '+g.account+'</div>':'')
       +'<div style="margin-top:6px;display:flex;gap:6px">'
       +'<span class="badge badge-ok">'+paid+'명 납부</span>'
       +((gm.length-paid)>0?'<span class="badge badge-no">'+(gm.length-paid)+'명 미납</span>':'')
@@ -1593,6 +1596,8 @@ function openEditGroup(id){
   document.getElementById('edit-g-name').value=g.name;
   document.getElementById('edit-g-dues').value=g.dues;
   document.getElementById('edit-g-desc').value=g.desc||'';
+  var acctEl=document.getElementById('edit-g-account');
+  if(acctEl) acctEl.value=g.account||'';
   openModal('modal-edit-group');
 }
 function saveEditGroup(){
@@ -1652,9 +1657,10 @@ function addGroup(){
   var d=parseInt(document.getElementById('g-dues').value)||0;
   var desc=document.getElementById('g-desc').value.trim();
   if(!name){showToast('모임 이름을 입력해 주세요');return}
-  groups.push({id:uid(),name:name,dues:d,desc:desc});
+  var acct=document.getElementById('g-account')?document.getElementById('g-account').value.trim():'';
+  groups.push({id:uid(),name:name,dues:d,desc:desc,account:acct});
   save('groups',groups);closeModal('modal-add-group');
-  ['g-name','g-dues','g-desc'].forEach(function(i){document.getElementById(i).value=''});
+  ['g-name','g-dues','g-desc','g-account'].forEach(function(i){var el=document.getElementById(i);if(el)el.value=''});
   showToast('모임이 추가됐어요 🎉');renderAll();
 }
 function addMember(){
@@ -1956,15 +1962,103 @@ function applyPhoneFormat(el){
 }
 
 // ── 인사말 자동 생성 ──
-function getGreeting(){
-  var h=new Date().getHours();
-  var m=new Date().getMonth()+1;
-  var season=m>=3&&m<=5?'봄':m>=6&&m<=8?'여름':m>=9&&m<=11?'가을':'겨울';
-  var seasonEmoji=m>=3&&m<=5?'🌸':m>=6&&m<=8?'☀️':m>=9&&m<=11?'🍂':'❄️';
-  var timeGreet=h>=5&&h<12?'좋은 아침입니다 ☀️':h>=12&&h<18?'안녕하세요 😊':h>=18&&h<22?'좋은 저녁입니다 🌙':'안녕하세요 🌙';
-  var d=new Date();
-  var dateStr=d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';
-  return seasonEmoji+' '+timeGreet+'\n'+dateStr+' '+season+' 인사드립니다.';
+function getGreeting(title, groupName){
+  var now=new Date();
+  var h=now.getHours();
+  var mo=now.getMonth()+1;
+  var day=now.getDay(); // 0=일,1=월...6=토
+  var dayNames=['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+  var dayName=dayNames[day];
+  var isWeekend=(day===0||day===6);
+
+  // 계절
+  var season=mo>=3&&mo<=5?'봄':mo>=6&&mo<=8?'여름':mo>=9&&mo<=11?'가을':'겨울';
+  var seasonEmoji=mo>=3&&mo<=5?'🌸':mo>=6&&mo<=8?'🌊':mo>=9&&mo<=11?'🍂':'⛄';
+
+  // 시간대
+  var timePeriod=h>=5&&h<12?'morning':h>=12&&h<18?'afternoon':h>=18&&h<22?'evening':'night';
+  var timeEmoji=timePeriod==='morning'?'☀️':timePeriod==='afternoon'?'😊':timePeriod==='evening'?'🌙':'🌙';
+
+  // 시간대별 인사 풀
+  var morningGreets=[
+    '안녕하세요! 상쾌한 아침입니다 ☀️',
+    '좋은 아침이에요! 오늘도 좋은 하루 되세요 🌅',
+    '모두 활기찬 아침 되세요 ☀️'
+  ];
+  var afternoonGreets=[
+    '안녕하세요! 즐거운 오후입니다 😊',
+    '반갑습니다! 오후도 좋은 시간 되세요 🙂',
+    '안녕하세요! 오늘 하루도 수고 많으십니다 😊'
+  ];
+  var eveningGreets=[
+    '안녕하세요! 편안한 저녁 시간입니다 🌙',
+    '좋은 저녁이에요! 오늘 하루도 수고 많으셨습니다 🌙',
+    '저녁 시간에 찾아뵙습니다 😊'
+  ];
+  var nightGreets=[
+    '늦은 시간에 연락드립니다 🌙',
+    '안녕하세요! 늦은 밤 죄송합니다 🌙'
+  ];
+
+  var greetPool=timePeriod==='morning'?morningGreets:timePeriod==='afternoon'?afternoonGreets:timePeriod==='evening'?eveningGreets:nightGreets;
+  var baseGreet=greetPool[Math.floor(Math.random()*greetPool.length)];
+
+  // 모임 관련 인사
+  var meetingComment='';
+  var titleLower=(title||'').toLowerCase();
+  if(titleLower.indexOf('번개')>=0||titleLower.indexOf('벙개')>=0){
+    var bangComments=[
+      '오늘 번개 모임은 즐거우셨나요? 😄',
+      '갑작스런 번개에 함께해 주셔서 감사합니다! ⚡',
+      '번개 모임 수고 많으셨습니다! ⚡😊'
+    ];
+    meetingComment=bangComments[Math.floor(Math.random()*bangComments.length)];
+  } else if(titleLower.indexOf('정기')>=0||titleLower.indexOf('월례')>=0){
+    var regularComments=[
+      '오늘 정기모임도 뜻깊은 시간이었습니다 😊',
+      '항상 자리를 빛내주셔서 감사합니다! 😊',
+      '즐거운 정기모임이었습니다 🙂'
+    ];
+    meetingComment=regularComments[Math.floor(Math.random()*regularComments.length)];
+  } else if(titleLower.indexOf('식사')>=0||titleLower.indexOf('회식')>=0||titleLower.indexOf('밥')>=0){
+    var dinnerComments=[
+      '맛있는 식사 함께해 주셔서 감사합니다! 🍽️',
+      '즐거운 식사 시간이었습니다 😋',
+      '오늘 식사 자리 함께해 주셔서 감사해요 🍽️'
+    ];
+    meetingComment=dinnerComments[Math.floor(Math.random()*dinnerComments.length)];
+  } else if(titleLower.indexOf('골프')>=0){
+    meetingComment='즐거운 라운딩이었습니다! ⛳ 다음에 또 함께해요 😊';
+  } else if(titleLower.indexOf('등산')>=0||titleLower.indexOf('산행')>=0){
+    meetingComment='수고 많으셨습니다! 멋진 산행이었어요 🏔️';
+  } else {
+    // 기본: 모임명 활용
+    var gName=groupName||'모임';
+    var defaultComments=[
+      gName+' 함께해 주셔서 감사합니다 😊',
+      '즐거운 시간이었습니다! '+seasonEmoji,
+      '항상 함께해 주셔서 감사합니다 🙂'
+    ];
+    meetingComment=defaultComments[Math.floor(Math.random()*defaultComments.length)];
+  }
+
+  // 주말/평일 추가 문구
+  var dayComment='';
+  if(isWeekend&&timePeriod==='morning') dayComment='여유로운 '+dayName+'입니다 😊';
+  else if(day===5&&timePeriod==='evening') dayComment='즐거운 금요일 저녁입니다 🎉';
+  else if(day===1&&timePeriod==='morning') dayComment='활기찬 월요일 아침입니다 💪';
+
+  var dateStr=now.getFullYear()+'년 '+mo+'월 '+now.getDate()+'일 ('+dayName+')';
+
+  var lines_=[
+    seasonEmoji+' '+baseGreet,
+    dateStr,
+  ];
+  if(dayComment) lines_.push(dayComment);
+  if(meetingComment) lines_.push('');
+  if(meetingComment) lines_.push(meetingComment);
+
+  return lines_.join('\n');
 }
 
 // ── 1/N 정산 목록 렌더링 ──
@@ -2090,7 +2184,9 @@ function viewSplitNotice(id){
   var s=splits.find(function(s){return s.id===id});
   if(!s) return;
   var g=groups.find(function(g){return g.id===s.groupId});
-  var perPerson=Math.ceil(s.amount/s.attendees.length);
+  // 100원 단위 올림
+  var rawPer=s.amount/s.attendees.length;
+  var perPerson=Math.ceil(rawPer/100)*100;
   var now=new Date();
   var noticeTime=now.getFullYear()+'년 '+(now.getMonth()+1)+'월 '+now.getDate()+'일 '+
     String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
@@ -2098,7 +2194,7 @@ function viewSplitNotice(id){
   s.noticeDate=noticeTime;
   save('splits',splits);
 
-  var greeting=getGreeting();
+  var greeting=getGreeting(s.title, g?g.name:'');
   var dateParts=s.date.split('-');
   var dateLabel=parseInt(dateParts[0])+'년 '+parseInt(dateParts[1])+'월 '+parseInt(dateParts[2])+'일';
   var members_list=s.attendees.map(function(a,i){return '  '+(i+1)+'. '+a.name+(a.isExtra?' (외부)':'')}).join('\n');
@@ -2113,7 +2209,7 @@ function viewSplitNotice(id){
     '━━━━━━━━━━━━━━━━\n'+
     '💸 1인당: '+perPerson.toLocaleString()+'원\n\n'+
     '참석자\n'+members_list+'\n\n'+
-    '계좌로 보내주시면 감사합니다 🙏\n'+
+    (g&&g.account?'💳 계좌: '+g.account+'\n':'')+'계좌로 보내주시면 감사합니다 🙏\n'+
     '총무 드림\n\n'+
     '📌 공지 발송: '+noticeTime;
 
@@ -2125,7 +2221,10 @@ function viewSplitNotice(id){
     '<div class="modal-title">📋 정산 공지</div>'+
     '<div class="copy-box" id="split-notice-text">'+noticeText+'</div>'+
     '<button onclick="copySplitNotice()" class="btn-primary">📋 카카오톡용 복사</button>'+
-    '<button onclick="closeSplitNotice()" class="btn-secondary">닫기</button>'
+    (s.photos&&s.photos.length?'<div style="margin-top:12px"><div style="font-size:13px;font-weight:700;margin-bottom:6px">📸 영수증 이미지 (카톡에 함께 첨부하세요)</div><div style="display:flex;gap:6px;flex-wrap:wrap">'
+      +s.photos.map(function(src){return '<img src="'+src+'" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer" data-src="'+src+'" onclick="viewSavedPhoto(this.dataset.src)">';}).join('')
+      +'</div></div>':'')
+    +'<button onclick="closeSplitNotice()" class="btn-secondary">닫기</button>'
     '</div>';
   modal.onclick=function(e){if(e.target===modal){modal.remove()}};
   document.body.appendChild(modal);
