@@ -1099,6 +1099,61 @@ function renderSettle(){
   var ymRange=getYMRange(ymStart,ymEnd);
   var isMultiMonth=ymRange.length>1;
 
+  // ── 이월 잔액 계산: 시작월 이전까지 전체 수입-지출 ──
+  function calcCarryOver(gId, beforeYM){
+    // beforeYM 이전 모든 월의 실제 납부 수입 합산
+    var prevIncome=0;
+    var gm=members.filter(function(m){return m.groupId===gId});
+    gm.forEach(function(m){
+      Object.keys(dues).forEach(function(k){
+        if(k.indexOf(m.id+'_')!==0) return;
+        var d=dues[k];
+        if(!d||!d.paid||d.exempt) return;
+        if(!d.date) return;
+        var payYM=d.date.slice(0,7);
+        if(payYM>=beforeYM) return; // 시작월 이후는 제외
+        // 중복 방지 (다개월 납부는 한번만)
+        var already=false;
+        gm.forEach(function(m2){
+          if(already) return;
+          var k2=Object.keys(dues).find(function(kk){
+            if(kk.indexOf(m.id+'_')!==0) return false;
+            var d2=dues[kk];
+            return d2&&d2.paid&&d2.date===d.date&&kk!==k;
+          });
+        });
+        // 납부일 기준으로 해당 월 수입으로 처리 (중복 제거)
+        var alreadyCounted=prevIncome>0&&false; // 간단 처리: 날짜+멤버 기준
+        var paidMonths=d.months||1;
+        prevIncome+=paidMonths*g.dues;
+        // 다개월 납부 중복 방지 - 같은 date+memberId는 한번만
+      });
+    });
+    // 중복 제거: 같은 memberId+date 조합은 한번만
+    var seen={};
+    prevIncome=0;
+    gm.forEach(function(m){
+      Object.keys(dues).forEach(function(k){
+        if(k.indexOf(m.id+'_')!==0) return;
+        var d=dues[k];
+        if(!d||!d.paid||d.exempt||!d.date) return;
+        if(d.date.slice(0,7)>=beforeYM) return;
+        var key=m.id+'_'+d.date;
+        if(seen[key]) return;
+        seen[key]=true;
+        prevIncome+=(d.months||1)*g.dues;
+      });
+    });
+    // 이전 기타수입
+    var prevExtra=incomes.filter(function(i){return i.groupId===gId&&i.date.slice(0,7)<beforeYM}).reduce(function(s,i){return s+i.amount},0);
+    // 이전 지출
+    var prevExp=expenses.filter(function(e){return e.groupId===gId&&e.date.slice(0,7)<beforeYM}).reduce(function(s,e){return s+e.amount},0);
+    return prevIncome+prevExtra-prevExp;
+  }
+  var carryOver=calcCarryOver(gId, ymStart);
+  var totalBalance=carryOver+balance; // 누적 최종 잔액
+
+
   var gMembers=sortedMembers(members.filter(function(m){return m.groupId===gId}));
 
   // 납부 회원: 범위 내 모든 월 납부한 회원
@@ -1181,7 +1236,7 @@ function renderSettle(){
       +(gExp.length?gExp.map(function(e){return '<div class="settle-row"><span style="color:var(--text2)">'+e.title+'</span><span style="font-weight:700;color:var(--red)">-'+e.amount.toLocaleString()+'원</span></div>'}).join(''):'<div style="font-size:13px;color:var(--text2);text-align:center;padding:8px">지출 없음</div>')
       +'<div class="settle-row" style="border-top:1.5px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">총 지출</span><span style="font-weight:700;color:var(--red)">-'+totalExpense.toLocaleString()+'원</span></div>'
       +'</div>'
-      +'<div class="card"><div class="settle-total"><span>최종 잔액</span><span style="color:'+(balance>=0?'var(--mint)':'var(--red)')+';font-size:18px">'+(balance>=0?'+':'')+balance.toLocaleString()+'원</span></div></div>'
+      +(function(){var yrs=ymStart.split('-')[0],mos=parseInt(ymStart.split('-')[1]);return '<div class="card">'+'<div class="settle-row"><span style="color:var(--text2)">이월 잔액 ('+yrs+'년 '+mos+'월 이전)</span>'+'<span style="font-weight:700;color:'+(carryOver>=0?'var(--mint)':'var(--red)')+'">'+(carryOver>=0?'+':'')+carryOver.toLocaleString()+'원</span></div>'+'<div class="settle-row"><span style="color:var(--text2)">기간 수입</span><span style="font-weight:700;color:var(--mint)">+'+totalIncome.toLocaleString()+'원</span></div>'+'<div class="settle-row"><span style="color:var(--text2)">기간 지출</span><span style="font-weight:700;color:var(--red)">-'+totalExpense.toLocaleString()+'원</span></div>'+'<div class="settle-total"><span>📊 누적 잔액</span><span style="color:'+(totalBalance>=0?'var(--mint)':'var(--red)')+';font-size:18px">'+(totalBalance>=0?'+':'')+totalBalance.toLocaleString()+'원</span></div>'+'</div>';}())
       +unpaidRows;
 
   } else if(settleTab==='expense'){
@@ -1251,36 +1306,28 @@ function renderSettle(){
       '━━━━━━━━━━━━━━━━',
       '💰 수입 내역 (납부일 기준)',
     ];
-    // 납부일 기준 수입 내역 - 단월 상세 / 다달 요약
+    // 수입 내역
     if(!isMultiMonth){
-      // 단월: 이름 + 납부일 전체 표시
+      // 단월: 이름 + 금액 + 납부일
       duesIncomeDetail.forEach(function(x){
         var lbl='• '+x.memberName+(x.months>1?' ('+x.months+'개월)':'');
         var dt=x.date?'  '+fmtDate(x.date):'';
         noticeLines.push(lbl+' '+x.amount.toLocaleString()+'원'+dt);
       });
     } else {
-      // 다달: 건수+합계만 (이미지 첨부 안내)
+      // 다달: 합계만
       noticeLines.push('• 회비 납부 합계: '+duesIncome.toLocaleString()+'원 ('+duesIncomeDetail.length+'건)');
       noticeLines.push('  ※ 상세 내역은 첨부 이미지 참고');
     }
     if(gInc.length) gInc.forEach(function(i){noticeLines.push('• '+i.title+': +'+i.amount.toLocaleString()+'원')});
     noticeLines.push('• 총 수입 합계: +'+totalIncome.toLocaleString()+'원');
-    // 납부 완료 목록 - 단월만 상세 표시
-    if(!isMultiMonth){
-      noticeLines.push('','📋 납부 완료 ('+duesIncomeDetail.length+'명)');
-      duesIncomeDetail.slice().sort(function(a,b){return a.memberName.localeCompare(b.memberName,'ko')}).forEach(function(x){
-        var dateStr=x.date?'  '+fmtDate(x.date):'';
-        var label='✅ '+x.memberName+(x.months>1?' ('+x.months+'개월)':'')+dateStr;
-        noticeLines.push('  '+label);
-      });
-    } else {
-      // 다달: 납부/미납 인원 수만 표시
-      noticeLines.push('','📋 납부 현황');
-      noticeLines.push('  ✅ 납부 완료: '+paidMembers.length+'명');
-    }
+    // 납부 현황: 완료 인원수 + 미납자 명단만
+    var paidCount=duesIncomeDetail.length;
+    var unpaidCount=unpaidMembers.length;
+    noticeLines.push('','📋 납부 현황');
+    noticeLines.push('  ✅ 납부 완료: '+paidCount+'명  ❌ 미납: '+unpaidCount+'명');
     if(unpaidMembers.length){
-      noticeLines.push('','❌ 미납 ('+unpaidMembers.length+'명)');
+      noticeLines.push('','⚠️ 미납자');
       unpaidDetail.forEach(function(n){noticeLines.push(n)});
     }
     noticeLines=noticeLines.concat([
@@ -1293,9 +1340,12 @@ function renderSettle(){
     noticeLines=noticeLines.concat([
       '','━━━━━━━━━━━━━━━━',
       '📊 최종 결산',
-      '• 총 수입: +'+totalIncome.toLocaleString()+'원',
-      '• 총 지출: -'+totalExpense.toLocaleString()+'원',
-      '• 잔액: '+(balance>=0?'+':'')+balance.toLocaleString()+'원'
+      '• 이월 잔액: '+(carryOver>=0?'+':'')+carryOver.toLocaleString()+'원  ('+ymStart.split('-')[0]+'년 '+parseInt(ymStart.split('-')[1])+'월 이전)',
+      '• 기간 수입: +'+totalIncome.toLocaleString()+'원',
+      '• 기간 지출: -'+totalExpense.toLocaleString()+'원',
+      '• 기간 잔액: '+(balance>=0?'+':'')+balance.toLocaleString()+'원',
+      '─────────────────',
+      '• 누적 잔액: '+(totalBalance>=0?'+':'')+totalBalance.toLocaleString()+'원'
     ]);
     // 다가오는 일정/기념일 추가
     if(upcomingEvents.length||upcomingAnnivs.length){
