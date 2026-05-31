@@ -100,6 +100,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .dues-cell-ok{background:#E1F5EE;color:#085041;border-radius:4px;padding:2px 4px;font-size:11px;font-weight:700;display:block;line-height:1.4}
 .dues-cell-no{background:#FFEBEE;color:#B71C1C;border-radius:4px;padding:2px 4px;font-size:11px;font-weight:700;display:block}
 .dues-cell-exempt{background:#FFF8E1;color:#7a5200;border-radius:4px;padding:2px 4px;font-size:11px;font-weight:700;display:block}
+.cell-menu{position:fixed;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:500;padding:8px;min-width:160px;animation:fadeIn .15s ease}
+@keyframes fadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.cell-menu-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:none;width:100%;font-family:'Noto Sans KR',sans-serif;color:var(--text)}
+.cell-menu-item:active{background:var(--bg)}
+.cell-menu-overlay{position:fixed;inset:0;z-index:499}
 </style>
 </head>
 <body>
@@ -723,14 +728,14 @@ function renderDues(){
           dateStr='<br>'+parseInt(dp[1])+'.'+parseInt(dp[2]);
         }
         var cellContent='';
+        var ca='data-mid="'+m.id+'" data-ym="'+ym+'" onclick="openCellMenu(this)" style="cursor:pointer;user-select:none"';
         if(isExempt){
-          cellContent='<span class="dues-cell-exempt">면제</span>';
+          cellContent='<span class="dues-cell-exempt" '+ca+'>면제</span>';
         } else if(isPaid){
-          cellContent='<span class="dues-cell-ok">납부'+dateStr+'</span>';
+          cellContent='<span class="dues-cell-ok" '+ca+'>납부'+dateStr+'</span>';
         } else {
-          cellContent='<span class="dues-cell-no" data-mid="'+m.id+'" data-ym="'+ym+'" onclick="openPayModalForMonth(this.dataset.mid,this.dataset.ym)" style="cursor:pointer">미납</span>';
+          cellContent='<span class="dues-cell-no" '+ca+'>미납</span>';
         }
-        tableHtml+='<td>'+cellContent+'</td>';
       });
       tableHtml+='</tr>';
     });
@@ -759,6 +764,213 @@ function setDuesFilter(id){duesFilter=id;renderDues()}
 
 // 보기 전환 (테이블 ↔ 카드)
 var duesViewMode='table';
+var cellMenuTarget=null;
+
+// 셀 클릭 → 납부/면제/미납 변경 메뉴
+function openCellMenu(el){
+  var mid=el.dataset.mid, ym=el.dataset.ym;
+  var m=members.find(function(m){return m.id===mid});
+  var g=m?groups.find(function(g){return g.id===m.groupId}):null;
+  var dData=dues[mid+'_'+ym];
+  var isPaid=dData&&dData.paid, isExempt=dData&&dData.exempt;
+
+  // 기존 메뉴 제거
+  var old=document.getElementById('cell-menu-popup');
+  if(old){old.remove();document.getElementById('cell-menu-ov').remove();return;}
+
+  var rect=el.getBoundingClientRect();
+  var menuY=Math.min(rect.bottom+4, window.innerHeight-160);
+  var menuX=Math.min(rect.left, window.innerWidth-180);
+
+  var ov=document.createElement('div');
+  ov.className='cell-menu-overlay'; ov.id='cell-menu-ov';
+  ov.onclick=function(){ov.remove();menu.remove()};
+  document.body.appendChild(ov);
+
+  var menu=document.createElement('div');
+  menu.className='cell-menu'; menu.id='cell-menu-popup';
+  menu.style.top=menuY+'px'; menu.style.left=menuX+'px';
+
+  var ymParts=ym.split('-');
+  menu.innerHTML='<div style="font-size:12px;color:var(--text2);padding:6px 14px 4px;font-weight:700">'+(m?m.name:'')+' · '+parseInt(ymParts[1])+'월</div>';
+
+  // 납부 처리
+  if(!isPaid||isExempt){
+    var btnPay=document.createElement('button');
+    btnPay.className='cell-menu-item';
+    btnPay.innerHTML='<span style="font-size:16px">✅</span> 납부 처리';
+    btnPay.onclick=function(){ov.remove();menu.remove();openPayModalForMonth(mid,ym);};
+    menu.appendChild(btnPay);
+  }
+
+  // 면제 처리
+  if(!isExempt){
+    var btnExempt=document.createElement('button');
+    btnExempt.className='cell-menu-item';
+    btnExempt.innerHTML='<span style="font-size:16px">🎫</span> 면제 처리';
+    btnExempt.onclick=function(){
+      ov.remove();menu.remove();
+      dues[mid+'_'+ym]={paid:true,method:'면제',date:new Date().toISOString().slice(0,10),exempt:true};
+      save('dues',dues);showToast('면제 처리됐어요 🎫');renderAll();
+    };
+    menu.appendChild(btnExempt);
+  }
+
+  // 미납으로 변경 (납부/면제 상태일 때)
+  if(isPaid){
+    var btnUnpay=document.createElement('button');
+    btnUnpay.className='cell-menu-item';
+    btnUnpay.innerHTML='<span style="font-size:16px">❌</span> 미납으로 변경';
+    btnUnpay.style.color='var(--red)';
+    btnUnpay.onclick=function(){
+      ov.remove();menu.remove();
+      delete dues[mid+'_'+ym];
+      save('dues',dues);showToast('미납으로 변경됐어요');renderAll();
+    };
+    menu.appendChild(btnUnpay);
+  }
+
+  document.body.appendChild(menu);
+}
+
+// 회비 현황 테이블 이미지 저장
+function saveDuesTableImage(){
+  var gId=document.getElementById('settle-group').value;
+  var ymStart=document.getElementById('settle-month-start')?document.getElementById('settle-month-start').value:thisYM();
+  var ymEnd=document.getElementById('settle-month-end')?document.getElementById('settle-month-end').value:thisYM();
+  if(!gId){showToast('결산 탭에서 모임을 선택해 주세요');return}
+
+  // 월 범위
+  var ymRange=[];
+  var rd=new Date(ymStart+'-01'), endD=new Date(ymEnd+'-01');
+  while(rd<=endD){
+    ymRange.push(rd.getFullYear()+'-'+String(rd.getMonth()+1).padStart(2,'0'));
+    rd.setMonth(rd.getMonth()+1);
+  }
+  var g=groups.find(function(g){return g.id===gId});
+  var gMembers=sortedMembers(members.filter(function(m){return m.groupId===gId}));
+
+  // Canvas로 테이블 그리기
+  var colW=72, nameW=90, rowH=52, headerH=44, padding=16;
+  var totalW=nameW+colW*ymRange.length+padding*2;
+  var totalH=headerH+(gMembers.length+1)*rowH+padding*2;
+
+  var canvas=document.createElement('canvas');
+  var scale=2; // 레티나 대응
+  canvas.width=totalW*scale; canvas.height=totalH*scale;
+  var ctx=canvas.getContext('2d');
+  ctx.scale(scale,scale);
+
+  // 배경
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,totalW,totalH);
+
+  // 제목
+  ctx.fillStyle='#1B3A6B';
+  ctx.fillRect(0,0,totalW,headerH);
+  ctx.fillStyle='#ffffff';
+  ctx.font='bold 14px sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText((g?g.name:'')+'  회비 납부 현황', padding, headerH/2+5);
+  ctx.font='12px sans-serif';
+  ctx.textAlign='right';
+  ctx.fillText(ymStart.replace('-','년 ')+'월 ~ '+ymEnd.split('-')[1].replace(/^0/,'')+'월', totalW-padding, headerH/2+5);
+
+  // 컬럼 헤더
+  var hY=headerH+padding;
+  ctx.fillStyle='#f4f6fa';
+  ctx.fillRect(padding, hY, totalW-padding*2, rowH);
+  ctx.fillStyle='#1B3A6B';
+  ctx.font='bold 13px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('이름', padding+nameW/2, hY+rowH/2+5);
+  ymRange.forEach(function(ym,i){
+    var mo=parseInt(ym.split('-')[1]);
+    ctx.fillText(mo+'월', padding+nameW+colW*i+colW/2, hY+rowH/2+5);
+  });
+
+  // 구분선
+  ctx.strokeStyle='#e5e7eb';
+  ctx.lineWidth=1;
+
+  // 데이터 행
+  gMembers.forEach(function(m,ri){
+    var ry=hY+rowH*(ri+1);
+    ctx.fillStyle=ri%2===0?'#ffffff':'#f9fafb';
+    ctx.fillRect(padding, ry, totalW-padding*2, rowH);
+
+    // 이름
+    ctx.fillStyle='#1a1a2e';
+    ctx.font='bold 13px sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText(m.name, padding+6, ry+rowH/2+5);
+
+    // 각 월
+    ymRange.forEach(function(ym,ci){
+      var dData=dues[m.id+'_'+ym];
+      var isPaid=dData&&dData.paid, isExempt=dData&&dData.exempt;
+      var cx=padding+nameW+colW*ci;
+      var cy=ry;
+
+      // 뱃지 배경
+      var bgColor, textColor, label, subLabel='';
+      if(isExempt){
+        bgColor='#FFF8E1'; textColor='#7a5200'; label='면제';
+      } else if(isPaid){
+        bgColor='#E1F5EE'; textColor='#085041'; label='납부';
+        if(dData.date){
+          var dp=dData.date.split('-');
+          subLabel=parseInt(dp[1])+'.'+parseInt(dp[2]);
+        }
+      } else {
+        bgColor='#FFEBEE'; textColor='#B71C1C'; label='미납';
+      }
+
+      var bx=cx+8, by=cy+8, bw=colW-16, bh=subLabel?18:22;
+      ctx.fillStyle=bgColor;
+      ctx.beginPath();
+      ctx.roundRect(bx,by,bw,bh,4);
+      ctx.fill();
+
+      ctx.fillStyle=textColor;
+      ctx.font='bold 11px sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText(label, cx+colW/2, by+bh/2+4);
+
+      if(subLabel){
+        ctx.font='10px sans-serif';
+        ctx.fillStyle='#555';
+        ctx.fillText(subLabel, cx+colW/2, cy+rowH-8);
+      }
+    });
+
+    // 행 구분선
+    ctx.strokeStyle='#e5e7eb';
+    ctx.beginPath();
+    ctx.moveTo(padding, ry+rowH);
+    ctx.lineTo(totalW-padding, ry+rowH);
+    ctx.stroke();
+  });
+
+  // 외곽선
+  ctx.strokeStyle='#e5e7eb';
+  ctx.strokeRect(padding, hY, totalW-padding*2, rowH*(gMembers.length+1));
+
+  // 다운로드
+  var date=new Date().toISOString().slice(0,10).replace(/-/g,'');
+  var a=document.createElement('a');
+  a.download=(g?g.name:'모임')+'_회비현황_'+date+'.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
+
+  // 미리보기
+  var prev=document.getElementById('table-image-preview');
+  if(prev){
+    prev.innerHTML='<img src="'+canvas.toDataURL('image/png')+'" style="width:100%;border-radius:8px;border:1px solid var(--border)">';
+  }
+  showToast('이미지가 저장됐어요! 📸 카톡에 첨부해 보내세요');
+}
+
 function toggleDuesView(){
   duesViewMode=duesViewMode==='table'?'card':'table';
   document.getElementById('dues-view-btn').textContent=duesViewMode==='table'?'☰':'▤';
@@ -1089,8 +1301,10 @@ function renderSettle(){
     var noticeText=noticeLines.join('\n');
     document.getElementById('settle-content').innerHTML=
       '<div class="copy-box" id="notice-text">'+noticeText+'</div>'
-      +'<button onclick="copyNotice()" class="btn-primary">📋 카카오톡에 붙여넣기용 복사</button>'
-      +'<div style="font-size:12px;color:var(--text2);margin-top:8px;text-align:center">복사 후 카카오톡 단톡방에 바로 붙여넣으세요!</div>';
+      +'<button onclick="copyNotice()" class="btn-primary">📋 카카오톡용 결산 공지 복사</button>'
+      +'<button onclick="saveDuesTableImage()" style="width:100%;padding:14px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:8px">📸 회비 현황 테이블 이미지 저장</button>'
+      +'<div style="font-size:12px;color:var(--text2);margin-top:8px;text-align:center">공지 복사 후 이미지도 함께 카톡에 보내세요!</div>'
+      +'<div id="table-image-preview" style="margin-top:12px"></div>';
   }
 }
 
