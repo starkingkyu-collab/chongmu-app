@@ -290,6 +290,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <label for="pay-exempt" style="font-size:14px;font-weight:700;color:#7a5200;cursor:pointer">🎫 회비 면제 처리 (이번 달 무료)</label>
     </div>
     <div id="pay-normal-fields">
+      <div class="form-group"><label class="form-label">📅 납부 적용 시작 월</label>
+        <input class="form-input" type="month" id="pay-start-month" oninput="calcMonths()">
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">과거 달 납부 시 해당 월로 변경하세요</div>
+      </div>
       <div class="form-group"><label class="form-label">납부 금액 (원)</label>
         <input class="form-input" id="pay-amount" type="number" placeholder="월 회비 금액 입력" oninput="calcMonths()">
         <div id="pay-months-preview" style="font-size:13px;color:var(--mint);font-weight:700;margin-top:6px;min-height:20px"></div>
@@ -1148,6 +1152,7 @@ function openPayModal(memberId){
   document.getElementById('pay-exempt').checked=false;
   document.getElementById('pay-normal-fields').style.display='';
   document.getElementById('pay-months-preview').textContent='';
+  document.getElementById('pay-start-month').value=thisYM();
   if(g) document.getElementById('pay-amount').value=g.dues;
   else document.getElementById('pay-amount').value='';
   calcMonths();
@@ -1162,13 +1167,30 @@ function calcMonths(){
   var g=m?groups.find(function(g){return g.id===m.groupId}):null;
   if(!g) return;
   var amount=parseInt(document.getElementById('pay-amount').value)||0;
+  var startYM=document.getElementById('pay-start-month').value||thisYM();
   if(amount<=0){document.getElementById('pay-months-preview').textContent='';return}
   var months=Math.floor(amount/g.dues);
   var remainder=amount%g.dues;
   var preview='';
+  // 시작월부터 months개월 목록 생성
+  function getMonthList(ym,cnt){
+    var list=[], d=new Date(ym+'-01');
+    for(var i=0;i<cnt;i++){
+      list.push(d.getFullYear()+'년 '+(d.getMonth()+1)+'월');
+      d.setMonth(d.getMonth()+1);
+    }
+    return list;
+  }
   if(months<=0){preview='⚠️ 월 회비('+g.dues.toLocaleString()+'원)보다 적어요'}
-  else if(months===1&&remainder===0){preview='✅ 이번 달 1개월 납부'}
-  else if(months>=2){preview='✅ '+months+'개월치 납부 처리됩니다'+(remainder>0?' ('+remainder.toLocaleString()+'원 초과분은 다음 달 이월)':'');}
+  else if(months===1){
+    var ym0=startYM.split('-');
+    preview='✅ '+parseInt(ym0[0])+'년 '+parseInt(ym0[1])+'월 1개월 납부';
+  }
+  else{
+    var list=getMonthList(startYM,months);
+    var rangeLabel=list[0]+' ~ '+list[list.length-1];
+    preview='✅ '+months+'개월 납부 ('+rangeLabel+')'+(remainder>0?' / '+remainder.toLocaleString()+'원 이월':'');
+  }
   document.getElementById('pay-months-preview').textContent=preview;
 }
 function confirmPay(){
@@ -1178,7 +1200,7 @@ function confirmPay(){
   var isExempt=document.getElementById('pay-exempt').checked;
   var date=isExempt?new Date().toISOString().slice(0,10):document.getElementById('pay-date').value;
   var method=isExempt?'면제':document.getElementById('pay-method').value;
-  var ym=thisYM();
+  var ym=isExempt?thisYM():(document.getElementById('pay-start-month').value||thisYM());
 
   if(isExempt){
     // 면제 처리: 이번 달만
@@ -1193,7 +1215,7 @@ function confirmPay(){
   var months=Math.floor(amount/g.dues);
   if(months<=0){showToast('월 회비('+g.dues.toLocaleString()+'원)보다 적은 금액이에요');return}
 
-  // 이번 달부터 months개월치 납부 처리
+  // 선택한 시작 월부터 months개월치 납부 처리
   var d=new Date(ym+'-01');
   for(var i=0;i<months;i++){
     var key=payTargetId+'_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
