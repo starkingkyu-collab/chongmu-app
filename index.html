@@ -814,7 +814,7 @@ function renderSettle(){
           +'<div style="text-align:right"><div style="font-size:14px;font-weight:700;color:var(--mint)">+'+i.amount.toLocaleString()+'원</div>'
           +'<button onclick="deleteIncome(\''+i.id+'\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer">삭제</button></div></div>';
       }).join(''):'<div style="text-align:center;color:var(--text2);padding:12px;font-size:13px">기타 수입이 없어요</div>')
-      +'<button onclick="openIncomeModal(\''+gId+'\')" style="width:100%;margin-top:10px;padding:11px;background:#E1F5EE;color:#085041;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ 이자 · 찬조금 · 벌금 등 추가</button>'
+      +'<button data-gid="'+gId+'" onclick="openIncomeModal(this.dataset.gid)" style="width:100%;margin-top:10px;padding:11px;background:#E1F5EE;color:#085041;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ 이자 · 찬조금 · 벌금 등 추가</button>'
       +'</div>'
       +'<div class="card">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
@@ -827,7 +827,7 @@ function renderSettle(){
           +'<div style="text-align:right"><div style="font-size:14px;font-weight:700;color:var(--red)">-'+ex.amount.toLocaleString()+'원</div>'
           +'<button onclick="deleteExpense(\''+ex.id+'\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer">삭제</button></div></div>';
       }).join(''):'<div style="text-align:center;color:var(--text2);padding:12px;font-size:13px">지출 내역이 없어요</div>')
-      +'<button onclick="openExpenseModal(\''+gId+'\')" style="width:100%;margin-top:10px;padding:11px;background:#FFEBEE;color:#B71C1C;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ 식사비 · 경조사비 · 비품 등 추가</button>'
+      +'<button data-gid="'+gId+'" onclick="openExpenseModal(this.dataset.gid)" style="width:100%;margin-top:10px;padding:11px;background:#FFEBEE;color:#B71C1C;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ 식사비 · 경조사비 · 비품 등 추가</button>'
       +'</div>';
 
   } else {
@@ -951,8 +951,8 @@ function fallbackCopy(text){
   catch(e){showToast('복사 실패 — 텍스트를 직접 선택해 주세요')}
   document.body.removeChild(ta);
 }
-function openExpenseModal(gId){fillGroupSelect('ex-group');document.getElementById('ex-group').value=gId;document.getElementById('ex-date').value=document.getElementById('settle-month').value+'-01';openModal('modal-add-expense')}
-function openIncomeModal(gId){fillGroupSelect('in-group');document.getElementById('in-group').value=gId;document.getElementById('in-date').value=document.getElementById('settle-month').value+'-01';openModal('modal-add-income')}
+function openExpenseModal(gId){fillGroupSelect('ex-group');document.getElementById('ex-group').value=gId;var sm=document.getElementById('settle-month-start');document.getElementById('ex-date').value=sm&&sm.value?sm.value+'-01':new Date().toISOString().slice(0,8)+'01';openModal('modal-add-expense')}
+function openIncomeModal(gId){fillGroupSelect('in-group');document.getElementById('in-group').value=gId;var sm=document.getElementById('settle-month-start');document.getElementById('in-date').value=sm&&sm.value?sm.value+'-01':new Date().toISOString().slice(0,8)+'01';openModal('modal-add-income')}
 
 // ── 모임관리 ──
 function renderGroups(){
