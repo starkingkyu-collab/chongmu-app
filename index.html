@@ -91,6 +91,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .tab-settle button.active{background:var(--navy);color:#fff;font-weight:700}
 .unpaid-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
 .unpaid-row:last-child{border-bottom:none}
+.attend-chip{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;font-size:13px;font-family:'Noto Sans KR',sans-serif;margin:3px;transition:all .15s;background:#fff;color:var(--text2)}
+.attend-chip.sel{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+.split-result{background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-top:8px}
+.photo-thumb{width:72px;height:72px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer}
+.photo-add-btn{width:72px;height:72px;border:2px dashed var(--border);border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#fff;color:var(--text2);font-size:11px;gap:2px}
+.photo-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.storage-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:4px}
+.storage-fill{height:100%;border-radius:3px;transition:width .3s}
+.event-detail-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.event-detail-row:last-child{border-bottom:none}
 .dues-table{width:100%;border-collapse:collapse;font-size:12px}
 .dues-table th{background:var(--navy);color:#fff;padding:8px 4px;text-align:center;font-weight:700;position:sticky;top:0;z-index:2}
 .dues-table th:first-child{text-align:left;padding-left:8px;min-width:60px}
@@ -157,8 +167,25 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <!-- 일정 -->
 <div class="page" id="page-schedule">
-  <div class="header"><h1>📅 모임 일정</h1><div class="header-sub" style="margin-top:4px">일정을 등록하고 관리하세요</div></div>
-  <div style="padding:16px"><div class="chip-row" id="sched-group-chips"></div><div id="schedule-list"></div></div>
+  <div class="header">
+    <h1>📅 모임 일정</h1>
+    <div class="header-sub" style="margin-top:4px">일정 관리 · 1/N 정산</div>
+  </div>
+  <div style="padding:16px">
+    <div class="tab-settle" style="margin-bottom:12px">
+      <button class="active" onclick="setSchedTab('list',this)">📋 일정 목록</button>
+      <button onclick="setSchedTab('split',this)">💸 1/N 정산</button>
+    </div>
+    <!-- 일정 목록 탭 -->
+    <div id="sched-tab-list">
+      <div class="chip-row" id="sched-group-chips"></div>
+      <div id="schedule-list"></div>
+    </div>
+    <!-- 1/N 정산 탭 -->
+    <div id="sched-tab-split" style="display:none">
+      <div id="split-content"></div>
+    </div>
+  </div>
 </div>
 
 <!-- 기념일 -->
@@ -200,7 +227,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <div class="page" id="page-groups">
   <div class="header"><h1>⚙️ 모임 관리</h1><div class="header-sub" style="margin-top:4px">모임 추가 · 수정 · 삭제</div></div>
   <div style="padding:16px">
-    <button onclick="openModal('modal-backup')" style="width:100%;padding:13px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px">💾 데이터 백업 / 복원</button>
+    <button onclick="openModal('modal-backup')" style="width:100%;padding:13px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px">💾 데이터 백업 / 복원</button>
+    <div id="groups-storage"></div>
     <div id="groups-list"></div>
   </div>
 </div>
@@ -295,6 +323,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="form-group"><label class="form-label">항목</label><input class="form-input" id="ex-title" placeholder="예) 식사비, 경조사비, 비품"></div>
     <div class="form-group"><label class="form-label">금액 (원)</label><input class="form-input" id="ex-amount" type="number" placeholder="예) 150000"></div>
     <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="ex-memo"></div>
+    <div class="form-group">
+      <label class="form-label">📸 사진 첨부 (최대 3장)</label>
+      <div class="photo-row" id="ex-photo-row">
+        <div class="photo-add-btn" onclick="addPhoto('ex')"><span style="font-size:22px">📷</span>추가</div>
+      </div>
+      <input type="file" id="ex-photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this,'ex')">
+      <div style="font-size:11px;color:var(--text2);margin-top:4px" id="ex-storage-info"></div>
+    </div>
     <button class="btn-primary" onclick="addExpense()">지출 추가</button>
     <button class="btn-secondary" onclick="closeModal('modal-add-expense')">취소</button>
   </div>
@@ -322,6 +358,44 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="an-memo" placeholder="예) 창립 5주년"></div>
     <button class="btn-primary" onclick="addAnniv()">기념일 추가</button>
     <button class="btn-secondary" onclick="closeModal('modal-add-anniv')">취소</button>
+  </div>
+</div>
+
+<!-- 모달: 정산추가 -->
+<div class="modal-overlay" id="modal-add-split" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">💸 1/N 정산 추가</div>
+    <div class="form-group"><label class="form-label">모임 선택</label><select class="form-select" id="sp-group" onchange="loadSplitMembers()"></select></div>
+    <div class="form-group"><label class="form-label">모임명 (번개/정기 등)</label><input class="form-input" id="sp-title" placeholder="예) 5월 번개, 정기모임"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="sp-date" type="date"></div>
+      <div class="form-group"><label class="form-label">장소</label><input class="form-input" id="sp-place" placeholder="예) OO식당"></div>
+    </div>
+    <div class="form-group"><label class="form-label">총 금액 (원)</label>
+      <input class="form-input" id="sp-amount" type="number" placeholder="예) 150000" oninput="calcSplit()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">참석 회원 선택</label>
+      <div id="sp-member-chips" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">외부 참석자 추가 (비회원)</label>
+      <div style="display:flex;gap:8px">
+        <input class="form-input" id="sp-extra-name" placeholder="이름" style="flex:1">
+        <button onclick="addSplitExtra()" style="padding:11px 14px;background:var(--sky);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">추가</button>
+      </div>
+      <div id="sp-extra-list" style="margin-top:8px"></div>
+    </div>
+    <div class="split-result" id="sp-preview"></div>
+    <div class="form-group">
+      <label class="form-label">📸 사진 첨부 (영수증 등, 최대 3장)</label>
+      <div class="photo-row" id="sp-photo-row">
+        <div class="photo-add-btn" onclick="addPhoto('sp')"><span style="font-size:22px">📷</span>추가</div>
+      </div>
+      <input type="file" id="sp-photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this,'sp')">
+      <div style="font-size:11px;color:var(--text2);margin-top:4px" id="sp-storage-info"></div>
+    </div>
+    <button class="btn-primary" onclick="saveSplit()">정산 저장</button>
+    <button class="btn-secondary" onclick="closeModal('modal-add-split')">취소</button>
   </div>
 </div>
 
@@ -408,11 +482,12 @@ var dues     = load('dues')     || {};
 var expenses = load('expenses') || [];
 var incomes  = load('incomes')  || [];
 var anniversaries = load('anniversaries') || [];
-var assets = load('assets') || []; // [{id,groupId,name,location,holder,memo}] 비품 관리
+var assets = load('assets') || [];
+var splits = load('splits') || []; // [{id,groupId,title,date,place,amount,attendees:[{id,name,isExtra}],memo,noticeDate}] // [{id,groupId,name,location,holder,memo}] 비품 관리
 
 function saveAll(){
   save('groups',groups);save('members',members);save('events',events);
-  save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);save('assets',assets);
+  save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);save('assets',assets);save('splits',splits);
 }
 function sortedMembers(arr){
   return arr.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ko')});
@@ -484,7 +559,10 @@ function showPage(name){
 }
 function handleFab(){
   if(curPage==='members'||curPage==='dues'||curPage==='birthday'){fillGroupSelect('m-group');openModal('modal-add-member')}
-  else if(curPage==='schedule'){fillGroupSelect('e-group');document.getElementById('e-date').value=new Date().toISOString().slice(0,10);openModal('modal-add-event')}
+  else if(curPage==='schedule'){
+    if(schedTab==='split'){openSplitModal();}
+    else{fillGroupSelect('e-group');document.getElementById('e-date').value=new Date().toISOString().slice(0,10);openModal('modal-add-event');}
+  }
   else if(curPage==='settle'){fillGroupSelect('ex-group');document.getElementById('ex-date').value=new Date().toISOString().slice(0,10);openModal('modal-add-expense')}
   else if(curPage==='groups'){openModal('modal-add-group')}
   else{openModal('modal-add-group')}
@@ -500,7 +578,10 @@ function renderAll(){
     if(de&&!de.value) de.value=thisYM();
     renderDues();
   }
-  if(curPage==='schedule') renderSchedule();
+  if(curPage==='schedule'){
+    renderSchedule();
+    if(schedTab==='split') renderSplitList();
+  }
   if(curPage==='birthday') renderBirthday();
   if(curPage==='settle')   initSettle();
   if(curPage==='groups')   renderGroups();
@@ -1067,6 +1148,16 @@ function eventCard(e,isPast){
 }
 function setSchedFilter(id){schedFilter=id;renderSchedule()}
 
+var schedTab='list';
+function setSchedTab(tab,btn){
+  schedTab=tab;
+  document.querySelectorAll('.tab-settle button').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  document.getElementById('sched-tab-list').style.display=tab==='list'?'':'none';
+  document.getElementById('sched-tab-split').style.display=tab==='split'?'':'none';
+  if(tab==='split') renderSplitList();
+}
+
 // ── 결산 ──
 var settleTab='summary';
 function setSettleTab(tab,btn){
@@ -1302,7 +1393,9 @@ function renderSettle(){
           +'<div style="flex:1"><div style="font-size:14px;font-weight:500">'+ex.title+'</div>'
           +'<div style="font-size:12px;color:var(--text2)">'+ex.date+(ex.memo?' · '+ex.memo:'')+'</div></div>'
           +'<div style="text-align:right"><div style="font-size:14px;font-weight:700;color:var(--red)">-'+ex.amount.toLocaleString()+'원</div>'
-          +'<button onclick="deleteExpense(\''+ex.id+'\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer">삭제</button></div></div>';
+          +'<button onclick="deleteExpense(\''+ex.id+'\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer">삭제</button></div></div>'
+          +(ex.photos&&ex.photos.length?'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'+ex.photos.map(function(src,pi){return '<img src="'+src+'" class="photo-thumb" data-src="'+src+'" onclick="viewSavedPhoto(this.dataset.src)" style="width:56px;height:56px">'}).join('')+'</div>':'')
+          +'</div>';
       }).join(''):'<div style="text-align:center;color:var(--text2);padding:12px;font-size:13px">지출 내역이 없어요</div>')
       +'<button data-gid="'+gId+'" onclick="openExpenseModal(this.dataset.gid)" style="width:100%;margin-top:10px;padding:11px;background:#FFEBEE;color:#B71C1C;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ 식사비 · 경조사비 · 비품 등 추가</button>'
       +'</div>';
@@ -1416,7 +1509,11 @@ function renderSettle(){
         noticeLines.push('• '+a.name+' → '+a.location+(h?' ('+h.name+')':'')+(a.memo?' / '+a.memo:''));
       });
     }
+    // 공지 발송 시각 기록
+    var nowDt=new Date();
+    var noticeTS=nowDt.getFullYear()+'년 '+(nowDt.getMonth()+1)+'월 '+nowDt.getDate()+'일 '+String(nowDt.getHours()).padStart(2,'0')+':'+String(nowDt.getMinutes()).padStart(2,'0');
     noticeLines.push('','감사합니다 🙏','총무 드림');
+    noticeLines.push('','📌 공지 발송: '+noticeTS);
     var noticeText=noticeLines.join('\n');
     document.getElementById('settle-content').innerHTML=
       '<div class="copy-box" id="notice-text">'+noticeText+'</div>'
@@ -1441,12 +1538,15 @@ function fallbackCopy(text){
   catch(e){showToast('복사 실패 — 텍스트를 직접 선택해 주세요')}
   document.body.removeChild(ta);
 }
-function openExpenseModal(gId){fillGroupSelect('ex-group');document.getElementById('ex-group').value=gId;var sm=document.getElementById('settle-month-start');document.getElementById('ex-date').value=sm&&sm.value?sm.value+'-01':new Date().toISOString().slice(0,8)+'01';openModal('modal-add-expense')}
+function openExpenseModal(gId){fillGroupSelect('ex-group');document.getElementById('ex-group').value=gId;resetPhotoBuffer('ex');var sm=document.getElementById('settle-month-start');document.getElementById('ex-date').value=sm&&sm.value?sm.value+'-01':new Date().toISOString().slice(0,8)+'01';openModal('modal-add-expense')}
 function openIncomeModal(gId){fillGroupSelect('in-group');document.getElementById('in-group').value=gId;var sm=document.getElementById('settle-month-start');document.getElementById('in-date').value=sm&&sm.value?sm.value+'-01':new Date().toISOString().slice(0,8)+'01';openModal('modal-add-income')}
 
 // ── 모임관리 ──
 function renderGroups(){
   var ym=thisYM();
+  // 저장소 현황 표시
+  var storageEl=document.getElementById('groups-storage');
+  if(storageEl) storageEl.innerHTML=showStorageStatus();
   if(!groups.length){document.getElementById('groups-list').innerHTML='<div class="empty-state"><div class="empty-icon">⚙️</div><p>모임을 추가해 주세요<br><small>오른쪽 아래 + 버튼</small></p></div>';return}
   document.getElementById('groups-list').innerHTML=groups.map(function(g){
     var gm=members.filter(function(m){return m.groupId===g.id});
@@ -1622,10 +1722,12 @@ function addExpense(){
   var memo=document.getElementById('ex-memo').value.trim();
   if(!title){showToast('항목을 입력해 주세요');return}
   if(!amount){showToast('금액을 입력해 주세요');return}
-  expenses.push({id:uid(),groupId:gId,date:date,title:title,amount:amount,memo:memo});
+  var exPhotos=(photoBuffers.ex||[]).slice();
+  expenses.push({id:uid(),groupId:gId,date:date,title:title,amount:amount,memo:memo,photos:exPhotos});
   save('expenses',expenses);closeModal('modal-add-expense');
   ['ex-title','ex-amount','ex-memo'].forEach(function(i){document.getElementById(i).value=''});
-  showToast('지출이 추가됐어요 💸');renderSettle();
+  resetPhotoBuffer('ex');
+  showToast('지출이 추가됐어요 💸');renderSettle();setTimeout(checkStorageAndWarn,500);
 }
 function deleteExpense(id){if(!confirm('삭제할까요?'))return;expenses=expenses.filter(function(e){return e.id!==id});save('expenses',expenses);showToast('삭제됐어요');renderSettle()}
 function addIncome(){
@@ -1791,7 +1893,7 @@ function unpay(memberId){
 
 // ── 백업/복원 ──
 function backupData(){
-  var data={groups:groups,members:members,dues:dues,events:events,expenses:expenses,incomes:incomes,anniversaries:anniversaries,assets:assets,backupDate:new Date().toISOString()};
+  var data={groups:groups,members:members,dues:dues,events:events,expenses:expenses,incomes:incomes,anniversaries:anniversaries,assets:assets,splits:splits,backupDate:new Date().toISOString()};
   var json=JSON.stringify(data,null,2);
   var blob=new Blob([json],{type:'application/json'});
   var url=URL.createObjectURL(blob);
@@ -1813,7 +1915,7 @@ function restoreData(){
         var data=JSON.parse(ev.target.result);
         if(!data.groups||!data.members){showToast('올바른 백업 파일이 아니에요');return}
         groups=data.groups||[];members=data.members||[];dues=data.dues||{};
-        events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];assets=data.assets||[];
+        events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];assets=data.assets||[];splits=data.splits||[];
         saveAll();showToast('복원 완료! ✅');renderAll();
       }catch(err){showToast('파일을 읽을 수 없어요')}
     };
@@ -1852,6 +1954,400 @@ function applyPhoneFormat(el){
   var newLen=el.value.length;
   el.selectionStart=el.selectionEnd=pos+(newLen-oldLen);
 }
+
+// ── 인사말 자동 생성 ──
+function getGreeting(){
+  var h=new Date().getHours();
+  var m=new Date().getMonth()+1;
+  var season=m>=3&&m<=5?'봄':m>=6&&m<=8?'여름':m>=9&&m<=11?'가을':'겨울';
+  var seasonEmoji=m>=3&&m<=5?'🌸':m>=6&&m<=8?'☀️':m>=9&&m<=11?'🍂':'❄️';
+  var timeGreet=h>=5&&h<12?'좋은 아침입니다 ☀️':h>=12&&h<18?'안녕하세요 😊':h>=18&&h<22?'좋은 저녁입니다 🌙':'안녕하세요 🌙';
+  var d=new Date();
+  var dateStr=d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';
+  return seasonEmoji+' '+timeGreet+'\n'+dateStr+' '+season+' 인사드립니다.';
+}
+
+// ── 1/N 정산 목록 렌더링 ──
+function renderSplitList(){
+  var gId=schedFilter==='all'?null:schedFilter;
+  var filtered=gId?splits.filter(function(s){return s.groupId===gId}):splits;
+  filtered=filtered.slice().sort(function(a,b){return b.date.localeCompare(a.date)});
+  var el=document.getElementById('split-content');
+  if(!filtered.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">💸</div><p>정산 내역이 없어요<br><small>오른쪽 아래 + 버튼으로 추가</small></p></div>';
+    return;
+  }
+  el.innerHTML=filtered.map(function(s){
+    var g=groups.find(function(g){return g.id===s.groupId});
+    var perPerson=s.attendees.length>0?Math.ceil(s.amount/s.attendees.length):0;
+    var parts=s.date.split('-');
+    return '<div class="card">'+
+      '<div style="display:flex;align-items:flex-start;gap:10px">'+
+      '<div class="event-date-box"><div class="event-day">'+parseInt(parts[2])+'</div><div class="event-month">'+parseInt(parts[1])+'월</div></div>'+
+      '<div style="flex:1">'+
+      '<div style="font-size:15px;font-weight:700">'+s.title+'</div>'+
+      '<div style="font-size:12px;color:var(--text2);margin-top:2px">'+(s.place?s.place+' · ':'')+'총 '+s.amount.toLocaleString()+'원 / '+s.attendees.length+'명</div>'+
+      '<div style="font-size:13px;color:var(--navy);font-weight:700;margin-top:4px">1인당 '+perPerson.toLocaleString()+'원</div>'+
+      (g?'<div style="margin-top:4px"><span class="badge badge-group">'+g.name+'</span></div>':'')+
+      (s.photos&&s.photos.length?'<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+s.photos.map(function(src){return '<img src="'+src+'" class="photo-thumb" data-src="'+src+'" onclick="viewSavedPhoto(this.dataset.src)" style="width:56px;height:56px">'}).join('')+'</div>':'')+
+      '<div style="display:flex;gap:8px;margin-top:8px">'+
+      '<button data-sid="'+s.id+'" onclick="viewSplitNotice(this.dataset.sid)" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📋 공지 생성</button>'+
+      '<button data-sid="'+s.id+'" onclick="deleteSplit(this.dataset.sid)" class="btn-danger" style="font-size:12px;padding:6px 10px">삭제</button>'+
+      '</div></div></div></div>';
+  }).join('');
+}
+
+// ── 정산 모달 열기 ──
+var splitExtras=[];
+function openSplitModal(){
+  fillGroupSelect('sp-group');
+  document.getElementById('sp-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('sp-title').value='';
+  document.getElementById('sp-place').value='';
+  document.getElementById('sp-amount').value='';
+  document.getElementById('sp-preview').innerHTML='';
+  document.getElementById('sp-extra-name').value='';
+  document.getElementById('sp-extra-list').innerHTML='';
+  splitExtras=[];
+  resetPhotoBuffer('sp');
+  loadSplitMembers();
+  openModal('modal-add-split');
+}
+function loadSplitMembers(){
+  var gId=document.getElementById('sp-group').value;
+  var gm=sortedMembers(gId?members.filter(function(m){return m.groupId===gId}):members);
+  document.getElementById('sp-member-chips').innerHTML=gm.map(function(m){
+    return '<div class="attend-chip" data-mid="'+m.id+'" data-name="'+m.name+'" onclick="toggleAttend(this)">'+m.name+'</div>';
+  }).join('');
+  calcSplit();
+}
+function toggleAttend(el){
+  el.classList.toggle('sel');
+  calcSplit();
+}
+function addSplitExtra(){
+  var name=document.getElementById('sp-extra-name').value.trim();
+  if(!name){showToast('이름을 입력해 주세요');return}
+  var eid='ex'+Date.now();
+  splitExtras.push({id:eid,name:name});
+  renderSplitExtras();
+  document.getElementById('sp-extra-name').value='';
+  calcSplit();
+}
+function renderSplitExtras(){
+  document.getElementById('sp-extra-list').innerHTML=splitExtras.map(function(ex){
+    return '<div style="display:inline-flex;align-items:center;gap:6px;background:#FEF3C7;padding:5px 10px;border-radius:20px;margin:3px;font-size:13px">'+
+      ex.name+'<span data-eid="'+ex.id+'" onclick="removeSplitExtra(this.dataset.eid)" style="cursor:pointer;color:#92400e;font-weight:700">✕</span></div>';
+  }).join('');
+}
+function removeSplitExtra(eid){
+  splitExtras=splitExtras.filter(function(e){return e.id!==eid});
+  renderSplitExtras();
+  calcSplit();
+}
+function calcSplit(){
+  var amount=parseInt(document.getElementById('sp-amount').value)||0;
+  var selChips=document.querySelectorAll('#sp-member-chips .attend-chip.sel');
+  var total=selChips.length+splitExtras.length;
+  var prev=document.getElementById('sp-preview');
+  if(!amount||total===0){prev.innerHTML='<div style="font-size:13px;color:var(--text2);text-align:center">금액과 참석자를 선택해 주세요</div>';return}
+  var perPerson=Math.ceil(amount/total);
+  prev.innerHTML='<div style="font-size:14px;font-weight:700;text-align:center;margin-bottom:6px">1인당 '+perPerson.toLocaleString()+'원</div>'+
+    '<div style="font-size:12px;color:var(--text2);text-align:center">총 '+amount.toLocaleString()+'원 ÷ '+total+'명</div>';
+}
+function saveSplit(){
+  var gId=document.getElementById('sp-group').value;
+  var title=document.getElementById('sp-title').value.trim();
+  var date=document.getElementById('sp-date').value;
+  var place=document.getElementById('sp-place').value.trim();
+  var amount=parseInt(document.getElementById('sp-amount').value)||0;
+  if(!title){showToast('모임명을 입력해 주세요');return}
+  if(!amount){showToast('금액을 입력해 주세요');return}
+  var selChips=document.querySelectorAll('#sp-member-chips .attend-chip.sel');
+  var attendees=[];
+  selChips.forEach(function(c){attendees.push({id:c.dataset.mid,name:c.dataset.name,isExtra:false})});
+  splitExtras.forEach(function(ex){attendees.push({id:ex.id,name:ex.name,isExtra:true})});
+  if(attendees.length===0){showToast('참석자를 선택해 주세요');return}
+  var spPhotos=(photoBuffers.sp||[]).slice();
+  splits.push({id:uid(),groupId:gId,title:title,date:date,place:place,amount:amount,attendees:attendees,photos:spPhotos,noticeDate:null});
+  save('splits',splits);
+  closeModal('modal-add-split');
+  resetPhotoBuffer('sp');
+  showToast('정산이 추가됐어요 💸');
+  renderSplitList();
+  setTimeout(checkStorageAndWarn,500);
+}
+function deleteSplit(id){
+  if(!confirm('정산 내역을 삭제할까요?'))return;
+  splits=splits.filter(function(s){return s.id!==id});
+  save('splits',splits);
+  showToast('삭제됐어요');
+  renderSplitList();
+}
+
+// ── 1/N 정산 공지 생성 ──
+function viewSplitNotice(id){
+  var s=splits.find(function(s){return s.id===id});
+  if(!s) return;
+  var g=groups.find(function(g){return g.id===s.groupId});
+  var perPerson=Math.ceil(s.amount/s.attendees.length);
+  var now=new Date();
+  var noticeTime=now.getFullYear()+'년 '+(now.getMonth()+1)+'월 '+now.getDate()+'일 '+
+    String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  // 공지 날짜 저장
+  s.noticeDate=noticeTime;
+  save('splits',splits);
+
+  var greeting=getGreeting();
+  var dateParts=s.date.split('-');
+  var dateLabel=parseInt(dateParts[0])+'년 '+parseInt(dateParts[1])+'월 '+parseInt(dateParts[2])+'일';
+  var members_list=s.attendees.map(function(a,i){return '  '+(i+1)+'. '+a.name+(a.isExtra?' (외부)':'')}).join('\n');
+  
+  var noticeText=greeting+'\n\n'+
+    '📢 ['+(g?g.name:'모임')+'] 정산 안내\n\n'+
+    '━━━━━━━━━━━━━━━━\n'+
+    '📅 일시: '+dateLabel+(s.place?' · '+s.place:'')+'\n'+
+    '🍽️ '+s.title+'\n\n'+
+    '💰 총 금액: '+s.amount.toLocaleString()+'원\n'+
+    '👥 참석 인원: '+s.attendees.length+'명\n'+
+    '━━━━━━━━━━━━━━━━\n'+
+    '💸 1인당: '+perPerson.toLocaleString()+'원\n\n'+
+    '참석자\n'+members_list+'\n\n'+
+    '계좌로 보내주시면 감사합니다 🙏\n'+
+    '총무 드림\n\n'+
+    '📌 공지 발송: '+noticeTime;
+
+  // 모달로 공지 표시
+  var modal=document.createElement('div');
+  modal.className='modal-overlay open';
+  modal.id='modal-split-notice';
+  modal.innerHTML='<div class="modal"><div class="modal-handle"></div>'+
+    '<div class="modal-title">📋 정산 공지</div>'+
+    '<div class="copy-box" id="split-notice-text">'+noticeText+'</div>'+
+    '<button onclick="copySplitNotice()" class="btn-primary">📋 카카오톡용 복사</button>'+
+    '<button onclick="closeSplitNotice()" class="btn-secondary">닫기</button>'
+    '</div>';
+  modal.onclick=function(e){if(e.target===modal){modal.remove()}};
+  document.body.appendChild(modal);
+}
+function closeSplitNotice(){var m=document.getElementById('modal-split-notice');if(m)m.remove();}
+function copySplitNotice(){
+  var text=document.getElementById('split-notice-text').innerText;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){showToast('복사됐어요! 카톡에 붙여넣으세요 📋')}).catch(function(){fallbackCopy(text)});
+  } else {fallbackCopy(text)}
+}
+
+
+// ── 사진 첨부 기능 ──
+var photoBuffers={ex:[],sp:[]}; // 모달별 임시 사진 저장
+
+function addPhoto(prefix){
+  document.getElementById(prefix+'-photo-input').click();
+}
+
+function handlePhoto(input, prefix){
+  var files=Array.from(input.files);
+  if(!files.length) return;
+  var maxPhotos=3;
+  var current=photoBuffers[prefix]?photoBuffers[prefix].length:0;
+  if(current>=maxPhotos){showToast('사진은 최대 3장까지 첨부 가능해요');input.value='';return;}
+  var file=files[0];
+  var reader=new FileReader();
+  reader.onload=function(e){
+    // Canvas로 압축
+    var img=new Image();
+    img.onload=function(){
+      var canvas=document.createElement('canvas');
+      var maxSize=600; // 최대 600px
+      var scale=Math.min(maxSize/img.width, maxSize/img.height, 1);
+      canvas.width=Math.round(img.width*scale);
+      canvas.height=Math.round(img.height*scale);
+      var ctx=canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      var compressed=canvas.toDataURL('image/jpeg', 0.6); // 60% 품질
+      if(!photoBuffers[prefix]) photoBuffers[prefix]=[];
+      photoBuffers[prefix].push(compressed);
+      renderPhotoRow(prefix);
+      updateStorageInfo(prefix);
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+
+function renderPhotoRow(prefix){
+  var row=document.getElementById(prefix+'-photo-row');
+  if(!row) return;
+  var photos=photoBuffers[prefix]||[];
+  var html=photos.map(function(src,i){
+    return '<div style="position:relative;display:inline-block">'
+      +'<img src="'+src+'" class="photo-thumb" data-prefix="'+prefix+'" data-idx="'+i+'" onclick="viewPhoto(this.dataset.prefix,parseInt(this.dataset.idx))">'
+      +'<button data-prefix="'+prefix+'" data-idx="'+i+'" onclick="removePhoto(this.dataset.prefix,parseInt(this.dataset.idx))" '
+      +'style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">✕</button>'
+      +'</div>';
+  }).join('');
+  if(photos.length<3){
+    html+='<div class="photo-add-btn" data-prefix="'+prefix+'" onclick="addPhoto(this.dataset.prefix)"><span style="font-size:22px">📷</span>추가</div>';
+  }
+  row.innerHTML=html;
+}
+
+function removePhoto(prefix, idx){
+  if(!photoBuffers[prefix]) return;
+  photoBuffers[prefix].splice(idx,1);
+  renderPhotoRow(prefix);
+  updateStorageInfo(prefix);
+}
+
+function viewPhoto(prefix, idx){
+  var src=photoBuffers[prefix]&&photoBuffers[prefix][idx];
+  if(!src) return;
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:600;display:flex;align-items:center;justify-content:center';
+  ov.onclick=function(){ov.remove()};
+  var img=document.createElement('img');
+  img.src=src;
+  img.style.cssText='max-width:95vw;max-height:90vh;border-radius:8px';
+  ov.appendChild(img);
+  document.body.appendChild(ov);
+}
+
+function viewSavedPhoto(src){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:600;display:flex;align-items:center;justify-content:center';
+  ov.onclick=function(){ov.remove()};
+  var img=document.createElement('img');
+  img.src=src;
+  img.style.cssText='max-width:95vw;max-height:90vh;border-radius:8px';
+  ov.appendChild(img);
+  document.body.appendChild(ov);
+}
+
+function updateStorageInfo(prefix){
+  var el=document.getElementById(prefix+'-storage-info');
+  if(!el) return;
+  var photos=photoBuffers[prefix]||[];
+  var totalBytes=photos.reduce(function(s,p){return s+p.length*0.75},0); // base64 → bytes
+  var kb=Math.round(totalBytes/1024);
+  // localStorage 전체 사용량 추정
+  var used=0;
+  try{
+    for(var k in localStorage){
+      if(localStorage.hasOwnProperty(k)) used+=localStorage[k].length*2;
+    }
+  }catch(e){}
+  var usedKB=Math.round(used/1024);
+  var maxKB=5120; // 5MB
+  var pct=Math.min(Math.round(usedKB/maxKB*100),100);
+  var color=pct>80?'var(--red)':pct>60?'var(--amber)':'var(--mint)';
+  el.innerHTML='현재 사진 용량: '+kb+'KB'
+    +'<div class="storage-bar"><div class="storage-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'
+    +'<span style="color:'+color+'">저장소 '+usedKB+'KB / '+maxKB+'KB ('+pct+'%)</span>';
+}
+
+function resetPhotoBuffer(prefix){
+  photoBuffers[prefix]=[];
+  renderPhotoRow(prefix);
+  var el=document.getElementById(prefix+'-storage-info');
+  if(el) el.innerHTML='';
+}
+
+
+// ── 저장소 관리 ──
+function getStorageUsage(){
+  var used=0;
+  try{for(var k in localStorage){if(localStorage.hasOwnProperty(k)) used+=localStorage[k].length*2;}}catch(e){}
+  return {usedKB:Math.round(used/1024), maxKB:5120, pct:Math.min(Math.round(used/1024/5120*100),100)};
+}
+
+function checkStorageAndWarn(){
+  var s=getStorageUsage();
+  if(s.pct<90) return;
+  // 경고 + 정리 제안
+  var photoCount=0;
+  expenses.forEach(function(e){if(e.photos&&e.photos.length) photoCount+=e.photos.length;});
+  splits.forEach(function(sp){if(sp.photos&&sp.photos.length) photoCount+=sp.photos.length;});
+  if(!photoCount){showToast('저장소가 '+s.pct+'% 찼어요! ⚙️ 모임 탭에서 관리하세요');return;}
+  // 정리 제안 팝업
+  var ov=document.createElement('div');
+  ov.className='modal-overlay open';
+  ov.id='modal-storage-warn';
+  ov.innerHTML='<div class="modal"><div class="modal-handle"></div>'
+    +'<div class="modal-title" style="color:var(--red)">⚠️ 저장소 부족</div>'
+    +'<div style="background:#FFEBEE;border-radius:8px;padding:12px;margin-bottom:16px;font-size:14px;line-height:1.7">'
+    +'현재 저장소 <strong>'+s.pct+'%</strong> 사용 중이에요.<br>'
+    +'('+s.usedKB.toLocaleString()+'KB / '+s.maxKB.toLocaleString()+'KB)<br><br>'
+    +'첨부 사진 <strong>'+photoCount+'장</strong>이 용량을 차지하고 있어요.<br>'
+    +'<span style="color:var(--text2);font-size:12px">※ 사진만 삭제되고 내역은 유지됩니다</span></div>'
+    +'<button onclick="cleanOldPhotos()" class="btn-primary" style="background:var(--red)">🗑️ 오래된 사진 정리 (3개월 이전)</button>'
+    +'<button onclick="cleanAllPhotos()" class="btn-secondary" style="margin-top:8px;color:var(--red);border-color:var(--red)">🗑️ 모든 사진 삭제</button>'
+    +'<button onclick="closeStorageWarn()" class="btn-secondary">나중에</button>'
+    +'</div>';
+  ov.onclick=function(e){if(e.target===ov) ov.remove()};
+  document.body.appendChild(ov);
+}
+
+
+function closeStorageWarn(){var m=document.getElementById('modal-storage-warn');if(m)m.remove();}
+function cleanOldPhotos(){
+  // 3개월 이전 지출/정산의 사진만 삭제
+  var cutoff=new Date();
+  cutoff.setMonth(cutoff.getMonth()-3);
+  var cutoffStr=cutoff.toISOString().slice(0,10);
+  var removed=0;
+  expenses.forEach(function(e){
+    if(e.photos&&e.photos.length&&e.date<cutoffStr){
+      removed+=e.photos.length;
+      e.photos=[];
+    }
+  });
+  splits.forEach(function(sp){
+    if(sp.photos&&sp.photos.length&&sp.date<cutoffStr){
+      removed+=sp.photos.length;
+      sp.photos=[];
+    }
+  });
+  save('expenses',expenses);
+  save('splits',splits);
+  var m=document.getElementById('modal-storage-warn');
+  if(m) m.remove();
+  var s=getStorageUsage();
+  showToast('사진 '+removed+'장 삭제 완료! 현재 '+s.pct+'% 사용 중');
+  renderAll();
+}
+
+function cleanAllPhotos(){
+  if(!confirm('모든 첨부 사진을 삭제할까요?\n내역 데이터는 유지됩니다.')) return;
+  var removed=0;
+  expenses.forEach(function(e){if(e.photos&&e.photos.length){removed+=e.photos.length;e.photos=[];}});
+  splits.forEach(function(sp){if(sp.photos&&sp.photos.length){removed+=sp.photos.length;sp.photos=[];}});
+  save('expenses',expenses);
+  save('splits',splits);
+  var m=document.getElementById('modal-storage-warn');
+  if(m) m.remove();
+  var s=getStorageUsage();
+  showToast('사진 '+removed+'장 모두 삭제! 현재 '+s.pct+'% 사용 중');
+  renderAll();
+}
+
+function showStorageStatus(){
+  var s=getStorageUsage();
+  var photoCount=0;
+  expenses.forEach(function(e){if(e.photos&&e.photos.length) photoCount+=e.photos.length;});
+  splits.forEach(function(sp){if(sp.photos&&sp.photos.length) photoCount+=sp.photos.length;});
+  var color=s.pct>=90?'var(--red)':s.pct>=70?'var(--amber)':'var(--mint)';
+  return '<div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:12px">'
+    +'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">'
+    +'<span style="font-weight:700">💾 저장소 현황</span>'
+    +'<span style="color:'+color+';font-weight:700">'+s.usedKB.toLocaleString()+'KB / '+s.maxKB.toLocaleString()+'KB ('+s.pct+'%)</span></div>'
+    +'<div class="storage-bar"><div class="storage-fill" style="width:'+s.pct+'%;background:'+color+'"></div></div>'
+    +'<div style="font-size:12px;color:var(--text2);margin-top:6px">첨부 사진 '+photoCount+'장 보관 중</div>'
+    +(s.pct>=90?'<button onclick="checkStorageAndWarn()" style="margin-top:8px;width:100%;padding:8px;background:#FFEBEE;color:var(--red);border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🗑️ 사진 정리하기</button>':'')
+    +'</div>';
+}
+
 function showToast(msg){
   var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   setTimeout(function(){t.classList.remove('show')},2200);
