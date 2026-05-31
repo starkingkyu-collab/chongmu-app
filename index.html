@@ -91,6 +91,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .tab-settle button.active{background:var(--navy);color:#fff;font-weight:700}
 .unpaid-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
 .unpaid-row:last-child{border-bottom:none}
+.dues-table{width:100%;border-collapse:collapse;font-size:12px}
+.dues-table th{background:var(--navy);color:#fff;padding:8px 4px;text-align:center;font-weight:700;position:sticky;top:0;z-index:2}
+.dues-table th:first-child{text-align:left;padding-left:8px;min-width:60px}
+.dues-table td{padding:7px 4px;text-align:center;border-bottom:1px solid var(--border)}
+.dues-table td:first-child{text-align:left;padding-left:8px;font-weight:700;font-size:13px}
+.dues-table tr:last-child td{border-bottom:none}
+.dues-cell-ok{background:#E1F5EE;color:#085041;border-radius:4px;padding:2px 4px;font-size:11px;font-weight:700;display:block;line-height:1.4}
+.dues-cell-no{background:#FFEBEE;color:#B71C1C;border-radius:4px;padding:2px 4px;font-size:11px;font-weight:700;display:block}
+.dues-cell-exempt{background:#FFF8E1;color:#7a5200;border-radius:4px;padding:2px 4px;font-size:11px;font-weight:700;display:block}
 </style>
 </head>
 <body>
@@ -121,7 +130,23 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <!-- 회비 -->
 <div class="page" id="page-dues">
-  <div class="header"><h1>💰 회비 관리</h1><div class="header-sub" id="dues-month-label" style="margin-top:4px"></div></div>
+  <div class="header">
+    <div class="header-top">
+      <div><h1>💰 회비 관리</h1><div class="header-sub" id="dues-month-label" style="margin-top:4px"></div></div>
+      <button class="header-btn" onclick="toggleDuesView()" id="dues-view-btn" title="보기 전환">☰</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+      <div style="flex:1">
+        <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:3px">시작 월</div>
+        <input class="form-input" type="month" id="dues-start-month" onchange="renderDues()" style="padding:7px 10px;font-size:14px;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff">
+      </div>
+      <div style="color:rgba(255,255,255,.7);margin-top:14px">~</div>
+      <div style="flex:1">
+        <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:3px">종료 월</div>
+        <input class="form-input" type="month" id="dues-end-month" onchange="renderDues()" style="padding:7px 10px;font-size:14px;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff">
+      </div>
+    </div>
+  </div>
   <div style="padding:16px"><div class="chip-row" id="dues-group-chips"></div><div id="dues-list"></div></div>
 </div>
 
@@ -631,38 +656,146 @@ function setMemberFilter(id){memberFilter=id;renderMembers()}
 // ── 회비 ──
 var duesFilter='all';
 function renderDues(){
-  var ym=thisYM(), d=new Date();
-  document.getElementById('dues-month-label').textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월 회비 현황';
+  var d=new Date();
+  // 시작/종료월 초기화
+  var dsEl=document.getElementById('dues-start-month');
+  var deEl=document.getElementById('dues-end-month');
+  if(!dsEl.value) dsEl.value=thisYM();
+  if(!deEl.value) deEl.value=thisYM();
+  var ymStart=dsEl.value, ymEnd=deEl.value;
+  if(ymEnd<ymStart) ymEnd=ymStart;
+
+  // 월 범위 생성
+  var ymRange=[];
+  var rd=new Date(ymStart+'-01'), endD=new Date(ymEnd+'-01');
+  while(rd<=endD){
+    ymRange.push(rd.getFullYear()+'-'+String(rd.getMonth()+1).padStart(2,'0'));
+    rd.setMonth(rd.getMonth()+1);
+  }
+
+  var isMulti=ymRange.length>1;
+  var periodLabel=isMulti?ymStart.replace('-','년 ')+'월 ~ '+ymEnd.split('-')[1].replace(/^0/,'')+'월':ymStart.replace('-','년 ')+'월';
+  document.getElementById('dues-month-label').textContent=periodLabel+' 회비 현황';
+
   var chips=[{id:'all',name:'전체'}].concat(groups);
-  document.getElementById('dues-group-chips').innerHTML=chips.map(function(g){return '<div class="chip'+(duesFilter===g.id?' sel':'')+'" onclick="setDuesFilter(\''+g.id+'\')">'+g.name+'</div>'}).join('');
-  var filtered=sortedMembers(duesFilter==='all'?members:members.filter(function(m){return m.groupId===duesFilter}));
-  if(!filtered.length){document.getElementById('dues-list').innerHTML='<div class="empty-state"><div class="empty-icon">💰</div><p>회원을 추가해 주세요</p></div>';return}
-  var paid=filtered.filter(function(m){return dues[m.id+'_'+ym]&&dues[m.id+'_'+ym].paid});
-  var totalExpect=filtered.reduce(function(s,m){var g=groups.find(function(g){return g.id===m.groupId});return s+(g?g.dues:0)},0);
-  var totalPaid=paid.reduce(function(s,m){var g=groups.find(function(g){return g.id===m.groupId});return s+(g?g.dues:0)},0);
-  var html='<div class="card">'
-    +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="font-weight:700">납부 현황</span><span style="color:var(--text2)">'+totalPaid.toLocaleString()+'원 / '+totalExpect.toLocaleString()+'원</span></div>'
-    +'<div class="progress-bar" style="margin-bottom:8px"><div class="progress-fill" style="width:'+(totalExpect?Math.round(totalPaid/totalExpect*100):0)+'%"></div></div>'
-    +'<div style="display:flex;gap:12px">'
-    +'<span style="font-size:13px"><span style="color:var(--mint);font-weight:700">✓ '+paid.length+'명</span> 납부</span>'
-    +'<span style="font-size:13px"><span style="color:var(--red);font-weight:700">✗ '+(filtered.length-paid.length)+'명</span> 미납</span>'
-    +'</div></div>';
-  html+=filtered.map(function(m){
-    var g=groups.find(function(g){return g.id===m.groupId});
-    var dData=dues[m.id+'_'+ym], isPaid=dData&&dData.paid;
-    return '<div class="card"><div style="display:flex;align-items:center;gap:10px;padding:2px 0">'
-      +'<div class="avatar av-'+m.av+'">'+m.name[0]+'</div>'
-      +'<div class="member-info"><div class="member-name">'+m.name+'</div>'
-      +'<div class="member-sub">'+(g?g.name:'')+(isPaid?' · '+(dData.exempt?'🎫 면제':dData.method+(dData.months&&dData.months>=2?' ('+dData.months+'개월)':''))+' · '+dData.date:'')+'</div></div>'
-      +'<div style="text-align:right">'
-      +'<div style="font-size:14px;font-weight:700;color:'+(isPaid?'var(--mint)':'var(--red)')+'">'+( g?g.dues.toLocaleString():0)+'원</div>'
-      +(isPaid?'<button onclick="unpay(\''+m.id+'\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;margin-top:4px">취소</button>'
-              :'<button onclick="openPayModal(\''+m.id+'\')" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px">납부</button>')
-      +'</div></div></div>';
+  document.getElementById('dues-group-chips').innerHTML=chips.map(function(g){
+    return '<div class="chip'+(duesFilter===g.id?' sel':'')+'" data-gid="'+g.id+'" onclick="setDuesFilter(this.dataset.gid)">'+g.name+'</div>';
   }).join('');
+
+  var filtered=sortedMembers(duesFilter==='all'?members:members.filter(function(m){return m.groupId===duesFilter}));
+  if(!filtered.length){
+    document.getElementById('dues-list').innerHTML='<div class="empty-state"><div class="empty-icon">💰</div><p>회원을 추가해 주세요</p></div>';
+    return;
+  }
+
+  // 요약 통계 (마지막 월 기준)
+  var lastYM=ymRange[ymRange.length-1];
+  var paidLast=filtered.filter(function(m){return dues[m.id+'_'+lastYM]&&dues[m.id+'_'+lastYM].paid});
+  var totalExpect=filtered.reduce(function(s,m){var g=groups.find(function(g){return g.id===m.groupId});return s+(g?g.dues:0)},0);
+  var totalPaid=paidLast.reduce(function(s,m){var g=groups.find(function(g){return g.id===m.groupId});return s+(g?g.dues:0)},0);
+
+  var html='<div class="card">'+
+    '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="font-weight:700">'+lastYM.replace('-','년 ')+'월 납부 현황</span><span style="color:var(--text2)">'+totalPaid.toLocaleString()+'원 / '+totalExpect.toLocaleString()+'원</span></div>'+
+    '<div class="progress-bar" style="margin-bottom:8px"><div class="progress-fill" style="width:'+(totalExpect?Math.round(totalPaid/totalExpect*100):0)+'%"></div></div>'+
+    '<div style="display:flex;gap:12px">'+
+    '<span style="font-size:13px"><span style="color:var(--mint);font-weight:700">✓ '+paidLast.length+'명</span> 납부</span>'+
+    '<span style="font-size:13px"><span style="color:var(--red);font-weight:700">✗ '+(filtered.length-paidLast.length)+'명</span> 미납</span>'+
+    '</div></div>';
+
+  if(duesViewMode==='table' && ymRange.length>=1){
+    // ── 테이블 뷰 ──
+    var tableHtml='<div style="overflow-x:auto;margin:-4px"><table class="dues-table"><thead><tr><th>이름</th>';
+    ymRange.forEach(function(ym){
+      var parts=ym.split('-');
+      tableHtml+='<th>'+parseInt(parts[1])+'월</th>';
+    });
+    tableHtml+='</tr></thead><tbody>';
+
+    filtered.forEach(function(m){
+      tableHtml+='<tr><td>'+m.name+'</td>';
+      ymRange.forEach(function(ym){
+        var dData=dues[m.id+'_'+ym];
+        var isPaid=dData&&dData.paid;
+        var isExempt=dData&&dData.exempt;
+        var dateStr='';
+        if(isPaid&&dData.date){
+          var dp=dData.date.split('-');
+          dateStr='<br>'+parseInt(dp[1])+'.'+parseInt(dp[2]);
+        }
+        var cellContent='';
+        if(isExempt){
+          cellContent='<span class="dues-cell-exempt">면제</span>';
+        } else if(isPaid){
+          cellContent='<span class="dues-cell-ok">납부'+dateStr+'</span>';
+        } else {
+          cellContent='<span class="dues-cell-no" data-mid="'+m.id+'" data-ym="'+ym+'" onclick="openPayModalForMonth(this.dataset.mid,this.dataset.ym)" style="cursor:pointer">미납</span>';
+        }
+        tableHtml+='<td>'+cellContent+'</td>';
+      });
+      tableHtml+='</tr>';
+    });
+    tableHtml+='</tbody></table></div>';
+    html+=tableHtml;
+
+  } else {
+    // ── 카드 뷰 (기존) ──
+    html+=filtered.map(function(m){
+      var g=groups.find(function(g){return g.id===m.groupId});
+      var dData=dues[m.id+'_'+lastYM], isPaid=dData&&dData.paid;
+      return '<div class="card"><div style="display:flex;align-items:center;gap:10px;padding:2px 0">'+
+        '<div class="avatar av-'+m.av+'">'+m.name[0]+'</div>'+
+        '<div class="member-info"><div class="member-name">'+m.name+'</div>'+
+        '<div class="member-sub">'+(g?g.name:'')+(isPaid?' · '+(dData.exempt?'🎫 면제':dData.method+(dData.months&&dData.months>=2?' ('+dData.months+'개월)':''))+' · '+dData.date:'')+'</div></div>'+
+        '<div style="text-align:right">'+
+        '<div style="font-size:14px;font-weight:700;color:'+(isPaid?'var(--mint)':'var(--red)')+'">'+( g?g.dues.toLocaleString():0)+'원</div>'+
+        (isPaid?'<button data-mid="'+m.id+'" data-ym="'+lastYM+'" onclick="unpayMonth(this.dataset.mid,this.dataset.ym)" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;margin-top:4px">취소</button>':
+                '<button data-mid="'+m.id+'" data-ym="'+lastYM+'" onclick="openPayModalForMonth(this.dataset.mid,this.dataset.ym)" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px">납부</button>')+
+        '</div></div></div>';
+    }).join('');
+  }
   document.getElementById('dues-list').innerHTML=html;
 }
 function setDuesFilter(id){duesFilter=id;renderDues()}
+
+// 보기 전환 (테이블 ↔ 카드)
+var duesViewMode='table';
+function toggleDuesView(){
+  duesViewMode=duesViewMode==='table'?'card':'table';
+  document.getElementById('dues-view-btn').textContent=duesViewMode==='table'?'☰':'▤';
+  renderDues();
+}
+
+// 특정 월 납부 처리 (테이블 셀 클릭 또는 카드에서)
+function openPayModalForMonth(memberId, targetYM){
+  payTargetId=memberId;
+  var m=members.find(function(m){return m.id===memberId});
+  var g=m?groups.find(function(g){return g.id===m.groupId}):null;
+  document.getElementById('pay-modal-title').textContent=(m?m.name:'')+' 회비 납부 처리';
+  document.getElementById('pay-modal-sub').textContent=g?g.name+' · '+g.dues.toLocaleString()+'원':'';
+  document.getElementById('pay-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('pay-exempt').checked=false;
+  document.getElementById('pay-normal-fields').style.display='';
+  document.getElementById('pay-months-preview').textContent='';
+  document.getElementById('pay-exempt-months').value='1';
+  document.getElementById('pay-exempt-preview').textContent='';
+  document.getElementById('pay-exempt-months-group').style.display='none';
+  ['pay-amount-group','pay-method-group','pay-date-group'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.style.display='';
+  });
+  // 적용 시작 월을 클릭한 월로 설정
+  document.getElementById('pay-start-month').value=targetYM;
+  if(g) document.getElementById('pay-amount').value=g.dues;
+  calcMonths();
+  openModal('modal-pay-dues');
+}
+
+// 특정 월 납부 취소
+function unpayMonth(memberId, targetYM){
+  delete dues[memberId+'_'+targetYM];
+  save('dues',dues);
+  showToast('납부 취소됐어요');
+  renderAll();
+}
 
 // ── 일정 ──
 var schedFilter='all';
@@ -1289,7 +1422,12 @@ function confirmPay(){
   else showToast('납부 완료 처리됐어요 ✅');
   renderAll();
 }
-function unpay(memberId){var ym=thisYM();delete dues[memberId+'_'+ym];save('dues',dues);showToast('납부 취소됐어요');renderAll()}
+function unpay(memberId){
+  // 홈 화면 미납 카드에서 호출 - 이번 달 기준
+  var ym=thisYM();
+  delete dues[memberId+'_'+ym];
+  save('dues',dues);showToast('납부 취소됐어요');renderAll();
+}
 
 // ── 백업/복원 ──
 function backupData(){
