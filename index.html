@@ -1251,18 +1251,34 @@ function renderSettle(){
       '━━━━━━━━━━━━━━━━',
       '💰 수입 내역 (납부일 기준)',
     ];
-    // 납부일 기준 상세 수입 내역
-    duesIncomeDetail.forEach(function(x){var lbl='• '+x.memberName+(x.months>1?' ('+x.months+'개월)':'');var dt=x.date?'  '+fmtDate(x.date):'';noticeLines.push(lbl+' '+x.amount.toLocaleString()+'원'+dt);});
+    // 납부일 기준 수입 내역 - 단월 상세 / 다달 요약
+    if(!isMultiMonth){
+      // 단월: 이름 + 납부일 전체 표시
+      duesIncomeDetail.forEach(function(x){
+        var lbl='• '+x.memberName+(x.months>1?' ('+x.months+'개월)':'');
+        var dt=x.date?'  '+fmtDate(x.date):'';
+        noticeLines.push(lbl+' '+x.amount.toLocaleString()+'원'+dt);
+      });
+    } else {
+      // 다달: 건수+합계만 (이미지 첨부 안내)
+      noticeLines.push('• 회비 납부 합계: '+duesIncome.toLocaleString()+'원 ('+duesIncomeDetail.length+'건)');
+      noticeLines.push('  ※ 상세 내역은 첨부 이미지 참고');
+    }
     if(gInc.length) gInc.forEach(function(i){noticeLines.push('• '+i.title+': +'+i.amount.toLocaleString()+'원')});
     noticeLines.push('• 총 수입 합계: +'+totalIncome.toLocaleString()+'원');
-    // 납부일 기준 실제 납부 내역
-    noticeLines.push('','📋 납부 완료 ('+duesIncomeDetail.length+'건)');
-    duesIncomeDetail.slice().sort(function(a,b){return a.memberName.localeCompare(b.memberName,'ko')}).forEach(function(x){
-      var dateStr=x.date?'  '+fmtDate(x.date):'';
-      var label='✅ '+x.memberName+(x.months>1?' ('+x.months+'개월)':'')+dateStr;
-      noticeLines.push('  '+label);
-    });
-
+    // 납부 완료 목록 - 단월만 상세 표시
+    if(!isMultiMonth){
+      noticeLines.push('','📋 납부 완료 ('+duesIncomeDetail.length+'명)');
+      duesIncomeDetail.slice().sort(function(a,b){return a.memberName.localeCompare(b.memberName,'ko')}).forEach(function(x){
+        var dateStr=x.date?'  '+fmtDate(x.date):'';
+        var label='✅ '+x.memberName+(x.months>1?' ('+x.months+'개월)':'')+dateStr;
+        noticeLines.push('  '+label);
+      });
+    } else {
+      // 다달: 납부/미납 인원 수만 표시
+      noticeLines.push('','📋 납부 현황');
+      noticeLines.push('  ✅ 납부 완료: '+paidMembers.length+'명');
+    }
     if(unpaidMembers.length){
       noticeLines.push('','❌ 미납 ('+unpaidMembers.length+'명)');
       unpaidDetail.forEach(function(n){noticeLines.push(n)});
