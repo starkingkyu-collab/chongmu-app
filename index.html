@@ -2106,7 +2106,9 @@ function renderSplitList(){
   }
   el.innerHTML=filtered.map(function(s){
     var g=groups.find(function(g){return g.id===s.groupId});
-    var perPerson=s.attendees.length>0?Math.ceil(s.amount/s.attendees.length):0;
+    var cardSponsorTotal=(s.sponsors||[]).reduce(function(sum,sp){return sum+sp.amount},0);
+    var cardNetAmt=s.netAmount||Math.max(s.amount-cardSponsorTotal,0);
+    var perPerson=s.attendees.length>0?Math.ceil(cardNetAmt/s.attendees.length/100)*100:0;
     var parts=s.date.split('-');
     return '<div class="card">'+
       '<div style="display:flex;align-items:flex-start;gap:10px">'+
@@ -2262,7 +2264,10 @@ function saveSplit(){
   closeModal('modal-add-split');
   resetPhotoBuffer('sp');
   showToast('정산이 추가됐어요 💸');
-  renderSplitList();
+  // 정산 탭으로 전환하여 바로 보이게
+  var splitBtn=document.querySelector('#page-schedule .tab-settle button:nth-child(2)');
+  if(splitBtn) setSchedTab('split',splitBtn);
+  else renderSplitList();
   setTimeout(checkStorageAndWarn,500);
 }
 function deleteSplit(id){
