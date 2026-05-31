@@ -99,6 +99,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .photo-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .storage-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:4px}
 .storage-fill{height:100%;border-radius:3px;transition:width .3s}
+.rules-editor{width:100%;min-height:300px;padding:12px;font-size:14px;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border);border-radius:var(--radius-sm);resize:vertical;line-height:1.8;color:var(--text);background:#fff;box-sizing:border-box}
+.rules-editor:focus{outline:none;border-color:var(--navy)}
+.rules-view{font-size:14px;line-height:1.9;white-space:pre-wrap;color:var(--text);padding:4px 0}
+.rules-view .rule-chapter{font-size:15px;font-weight:700;color:var(--navy);margin-top:16px;margin-bottom:4px}
 .event-detail-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
 .event-detail-row:last-child{border-bottom:none}
 .dues-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -223,6 +227,18 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
 </div>
 
+<!-- 회칙 -->
+<div class="page" id="page-rules">
+  <div class="header">
+    <h1>📋 회칙</h1>
+    <div class="header-sub" style="margin-top:4px">모임별 회칙 관리</div>
+  </div>
+  <div style="padding:16px">
+    <div class="chip-row" id="rules-group-chips"></div>
+    <div id="rules-content"></div>
+  </div>
+</div>
+
 <!-- 모임관리 -->
 <div class="page" id="page-groups">
   <div class="header"><h1>⚙️ 모임 관리</h1><div class="header-sub" style="margin-top:4px">모임 추가 · 수정 · 삭제</div></div>
@@ -241,6 +257,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <button class="tab-btn" data-page="schedule" onclick="showPage('schedule')"><span class="tab-icon">📅</span>일정</button>
   <button class="tab-btn" data-page="birthday" onclick="showPage('birthday')"><span class="tab-icon">🎉</span>기념일</button>
   <button class="tab-btn" data-page="settle" onclick="showPage('settle')"><span class="tab-icon">📊</span>결산</button>
+  <button class="tab-btn" data-page="rules" onclick="showPage('rules')"><span class="tab-icon">📋</span>회칙</button>
   <button class="tab-btn" data-page="groups" onclick="showPage('groups')"><span class="tab-icon">⚙️</span>모임</button>
 </div>
 <button class="fab" onclick="handleFab()">＋</button>
@@ -505,11 +522,12 @@ var expenses = load('expenses') || [];
 var incomes  = load('incomes')  || [];
 var anniversaries = load('anniversaries') || [];
 var assets = load('assets') || [];
+var rules  = load('rules')  || {}; // {groupId: {title, content, updatedAt}}
 var splits = load('splits') || []; // [{id,groupId,title,date,place,amount,attendees:[{id,name,isExtra}],memo,noticeDate}] // [{id,groupId,name,location,holder,memo}] 비품 관리
 
 function saveAll(){
   save('groups',groups);save('members',members);save('events',events);
-  save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);save('assets',assets);save('splits',splits);
+  save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);save('assets',assets);save('splits',splits);save('rules',rules);
 }
 function sortedMembers(arr){
   return arr.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ko')});
@@ -607,6 +625,7 @@ function renderAll(){
   if(curPage==='birthday') renderBirthday();
   if(curPage==='settle')   initSettle();
   if(curPage==='groups')   renderGroups();
+  if(curPage==='rules')    renderRules();
 }
 
 // ── 홈 ──
@@ -1919,7 +1938,7 @@ function unpay(memberId){
 
 // ── 백업/복원 ──
 function backupData(){
-  var data={groups:groups,members:members,dues:dues,events:events,expenses:expenses,incomes:incomes,anniversaries:anniversaries,assets:assets,splits:splits,backupDate:new Date().toISOString()};
+  var data={groups:groups,members:members,dues:dues,events:events,expenses:expenses,incomes:incomes,anniversaries:anniversaries,assets:assets,splits:splits,rules:rules,backupDate:new Date().toISOString()};
   var json=JSON.stringify(data,null,2);
   var blob=new Blob([json],{type:'application/json'});
   var url=URL.createObjectURL(blob);
@@ -1941,7 +1960,7 @@ function restoreData(){
         var data=JSON.parse(ev.target.result);
         if(!data.groups||!data.members){showToast('올바른 백업 파일이 아니에요');return}
         groups=data.groups||[];members=data.members||[];dues=data.dues||{};
-        events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];assets=data.assets||[];splits=data.splits||[];
+        events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];assets=data.assets||[];splits=data.splits||[];rules=data.rules||{};
         saveAll();showToast('복원 완료! ✅');renderAll();
       }catch(err){showToast('파일을 읽을 수 없어요')}
     };
@@ -2550,6 +2569,140 @@ function showStorageStatus(){
     +'<div style="font-size:12px;color:var(--text2);margin-top:6px">첨부 사진 '+photoCount+'장 보관 중</div>'
     +(s.pct>=90?'<button onclick="checkStorageAndWarn()" style="margin-top:8px;width:100%;padding:8px;background:#FFEBEE;color:var(--red);border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🗑️ 사진 정리하기</button>':'')
     +'</div>';
+}
+
+
+// ── 회칙 ──
+var rulesFilter=''; // 현재 선택된 모임 ID
+var rulesEditMode=false;
+
+function renderRules(){
+  // 모임 칩 렌더링
+  var chips=[].concat(groups);
+  var chipEl=document.getElementById('rules-group-chips');
+  if(!chips.length){
+    document.getElementById('rules-content').innerHTML=
+      '<div class="empty-state"><div class="empty-icon">📋</div><p>먼저 모임을 추가해 주세요</p></div>';
+    chipEl.innerHTML='';
+    return;
+  }
+  // 선택된 모임 없으면 첫 번째로 초기화
+  if(!rulesFilter||!groups.find(function(g){return g.id===rulesFilter})){
+    rulesFilter=groups[0].id;
+  }
+  chipEl.innerHTML=chips.map(function(g){
+    return '<div class="chip'+(rulesFilter===g.id?' sel':'')+'" data-gid="'+g.id+'" onclick="setRulesFilter(this.dataset.gid)">'+g.name+'</div>';
+  }).join('');
+  renderRulesContent();
+}
+
+function setRulesFilter(gId){
+  // 편집 중이면 저장 여부 확인
+  if(rulesEditMode){
+    if(!confirm('편집 중인 내용이 있어요. 저장하지 않고 이동할까요?')){return;}
+    rulesEditMode=false;
+  }
+  rulesFilter=gId;
+  renderRules();
+}
+
+function renderRulesContent(){
+  var g=groups.find(function(g){return g.id===rulesFilter});
+  if(!g) return;
+  var r=rules[rulesFilter]||{title:'',content:'',updatedAt:''};
+  var el=document.getElementById('rules-content');
+
+  if(rulesEditMode){
+    // 편집 모드
+    el.innerHTML=
+      '<div class="card">'+
+      '<div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--navy)">'+g.name+' 회칙 편집</div>'+
+      '<div class="form-group"><label class="form-label">제목 (선택)</label>'+
+      '<input class="form-input" id="rules-title-input" value="'+escHtml(r.title||g.name+' 회칙')+'" placeholder="예) 항공친목회 회칙"></div>'+
+      '<div class="form-group"><label class="form-label">회칙 내용</label>'+
+      '<textarea class="rules-editor" id="rules-content-input" placeholder="회칙 내용을 자유롭게 입력하세요&#10;&#10;예)&#10;제1조 (목적)&#10;본 회는 ...&#10;&#10;제2조 (명칭)&#10;본 회의 명칭은 ...">'+escHtml(r.content||'')+'</textarea>'+
+      '<div style="font-size:12px;color:var(--text2);margin-top:4px">자유롭게 입력하세요. 줄바꿈이 그대로 유지됩니다.</div></div>'+
+      '<div style="display:flex;gap:8px;margin-top:4px">'+
+      '<button onclick="saveRules()" class="btn-primary" style="flex:1">💾 저장</button>'+
+      '<button onclick="cancelRulesEdit()" class="btn-secondary">취소</button>'+
+      '</div></div>';
+  } else {
+    // 보기 모드
+    var updatedStr=r.updatedAt?'<div style="font-size:11px;color:var(--text2);text-align:right;margin-top:4px">최종 수정: '+r.updatedAt+'</div>':'';
+    var bodyHtml='';
+    if(r.content){
+      // 조항 자동 강조 (제N조 패턴)
+      var lines=r.content.split('\n');
+      bodyHtml=lines.map(function(line){
+        if(/^제\s*\d+\s*조/.test(line.trim())||/^第\s*\d+\s*條/.test(line.trim())){
+          return '<div class="rule-chapter">'+escHtml(line)+'</div>';
+        }
+        return escHtml(line);
+      }).join('\n');
+    }
+    el.innerHTML=
+      '<div class="card">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'+
+      '<div style="font-size:16px;font-weight:700">'+escHtml(r.title||g.name+' 회칙')+'</div>'+
+      '<button onclick="startRulesEdit()" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✏️ 편집</button>'+
+      '</div>'+
+      (r.content?
+        '<div class="rules-view">'+bodyHtml+'</div>'+updatedStr:
+        '<div style="text-align:center;padding:32px 0;color:var(--text2)">'+
+        '<div style="font-size:32px;margin-bottom:8px">📋</div>'+
+        '<div style="font-size:14px">아직 회칙이 없어요</div>'+
+        '<div style="font-size:12px;margin-top:4px">편집 버튼을 눌러 회칙을 입력해 주세요</div>'+
+        '</div>')+
+      '</div>'+
+      // 복사 버튼 (회칙 있을 때만)
+      (r.content?'<button onclick="copyRules()" style="width:100%;padding:13px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px">📋 회칙 텍스트 복사</button>':'');
+  }
+}
+
+function escHtml(str){
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function startRulesEdit(){
+  rulesEditMode=true;
+  renderRulesContent();
+  // 텍스트영역 포커스
+  setTimeout(function(){
+    var ta=document.getElementById('rules-content-input');
+    if(ta) ta.focus();
+  },100);
+}
+
+function cancelRulesEdit(){
+  rulesEditMode=false;
+  renderRulesContent();
+}
+
+function saveRules(){
+  var titleEl=document.getElementById('rules-title-input');
+  var contentEl=document.getElementById('rules-content-input');
+  if(!contentEl) return;
+  var now=new Date();
+  var updatedAt=now.getFullYear()+'년 '+(now.getMonth()+1)+'월 '+now.getDate()+'일 '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  rules[rulesFilter]={
+    title:titleEl?titleEl.value.trim():'',
+    content:contentEl.value,
+    updatedAt:updatedAt
+  };
+  save('rules',rules);
+  rulesEditMode=false;
+  showToast('회칙이 저장됐어요 📋');
+  renderRulesContent();
+}
+
+function copyRules(){
+  var r=rules[rulesFilter];
+  var g=groups.find(function(g){return g.id===rulesFilter});
+  if(!r||!r.content){showToast('저장된 회칙이 없어요');return}
+  var text=(r.title||g.name+' 회칙')+'\n\n'+r.content;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){showToast('회칙이 복사됐어요 📋')}).catch(function(){fallbackCopy(text)});
+  } else {fallbackCopy(text)}
 }
 
 function showToast(msg){
