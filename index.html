@@ -304,6 +304,19 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
 </div>
 
+<!-- 모달: 비품추가 -->
+<div class="modal-overlay" id="modal-add-asset" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">📦 비품 추가</div>
+    <div class="form-group"><label class="form-label">모임</label><select class="form-select" id="asset-group"></select></div>
+    <div class="form-group"><label class="form-label">비품명</label><input class="form-input" id="asset-name" placeholder="예) 근조기, 축기, 현수막"></div>
+    <div class="form-group"><label class="form-label">보관 장소</label><input class="form-input" id="asset-location" placeholder="예) 홍길동 자택, 창고"></div>
+    <div class="form-group"><label class="form-label">보관자 (선택)</label><select class="form-select" id="asset-holder"><option value="">없음</option></select></div>
+    <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="asset-memo" placeholder="예) 검정색 대형, 2개 보유"></div>
+    <button class="btn-primary" onclick="addAsset()">비품 추가</button>
+    <button class="btn-secondary" onclick="closeModal('modal-add-asset')">취소</button>
+  </div>
+</div>
+
 <!-- 모달: 백업 -->
 <div class="modal-overlay" id="modal-backup" onclick="closeModalOutside(event,this)">
   <div class="modal"><div class="modal-handle"></div><div class="modal-title">💾 데이터 백업 / 복원</div>
@@ -337,10 +350,11 @@ var dues     = load('dues')     || {};
 var expenses = load('expenses') || [];
 var incomes  = load('incomes')  || [];
 var anniversaries = load('anniversaries') || [];
+var assets = load('assets') || []; // [{id,groupId,name,location,holder,memo}] 비품 관리
 
 function saveAll(){
   save('groups',groups);save('members',members);save('events',events);
-  save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);
+  save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);save('assets',assets);
 }
 function sortedMembers(arr){
   return arr.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ko')});
@@ -389,6 +403,11 @@ if(!groups.length){
   events=[
     {id:'ev1',groupId:'g1',title:'항공친목회 정기모임',date:ym+'-07',time:'18:00',place:'대구 달서구 OO식당',memo:'회비 수금',done:false},
     {id:'ev2',groupId:'g2',title:'조종사모임 번개',date:ym+'-14',time:'15:00',place:'동성로 OO카페',memo:'',done:false}
+  ];
+  assets=[
+    {id:'as1',groupId:'g1',name:'근조기',location:'홍길동 자택',holder:'m1',memo:'검정색 대형'},
+    {id:'as2',groupId:'g1',name:'축기',location:'이영희 자택',holder:'m3',memo:''},
+    {id:'as3',groupId:'g2',name:'근조기',location:'박민준 자택',holder:'m4',memo:'소형'}
   ];
   saveAll();
 }
@@ -895,6 +914,16 @@ function renderSettle(){
         noticeLines.push('• '+nextMonthNum+'월 '+dd+'일 '+a.title+(a.memo?' ('+a.memo+')':''));
       });
     }
+    // 비품 현황 추가
+    var gAssets=assets.filter(function(a){return a.groupId===gId});
+    if(gAssets.length){
+      noticeLines.push('','━━━━━━━━━━━━━━━━');
+      noticeLines.push('📦 비품 현황');
+      gAssets.forEach(function(a){
+        var h=a.holder?members.find(function(m){return m.id===a.holder}):null;
+        noticeLines.push('• '+a.name+' → '+a.location+(h?' ('+h.name+')':'')+(a.memo?' / '+a.memo:''));
+      });
+    }
     noticeLines.push('','감사합니다 🙏','총무 드림');
     var noticeText=noticeLines.join('\n');
     document.getElementById('settle-content').innerHTML=
@@ -938,6 +967,25 @@ function renderGroups(){
       +'<span class="badge badge-ok">'+paid+'명 납부</span>'
       +((gm.length-paid)>0?'<span class="badge badge-no">'+(gm.length-paid)+'명 미납</span>':'')
       +'</div></div></div>'
+      +(function(){
+        var ga=assets.filter(function(a){return a.groupId===g.id});
+        var rows=ga.length?ga.map(function(a){
+          var h=a.holder?members.find(function(m){return m.id===a.holder}):null;
+          return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">'
+            +'<span style="font-size:16px">📦</span>'
+            +'<div style="flex:1;min-width:0">'
+            +'<div style="font-size:13px;font-weight:700">'+a.name+'</div>'
+            +'<div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 '+a.location+(h?' · '+h.name:'')+(a.memo?' · '+a.memo:'')+'</div>'
+            +'</div>'
+            +'<button data-aid="'+a.id+'" onclick="deleteAsset(this.dataset.aid)" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;padding:4px;flex-shrink:0">✕</button>'
+            +'</div>';
+        }).join(''):'<div style="font-size:12px;color:var(--text2);text-align:center;padding:8px">등록된 비품이 없어요</div>';
+        return '<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          +'<div style="font-size:13px;font-weight:700">📦 비품 현황</div>'
+          +'<button data-gid="'+g.id+'" onclick="openAddAsset(this.dataset.gid)" style="background:var(--sky);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">+ 추가</button>'
+          +'</div>'+rows+'</div>';
+      }())
       +'<div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">'
       +'<button onclick="openEditGroup(\''+g.id+'\')" style="flex:1;padding:9px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✏️ 수정</button>'
       +'<button onclick="deleteGroup(\''+g.id+'\')" style="padding:9px 14px;background:#FFEBEE;color:var(--red);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">삭제</button>'
@@ -978,6 +1026,33 @@ function deleteGroup(id){
 }
 
 // ── CRUD ──
+function openAddAsset(gId){
+  fillGroupSelect('asset-group');
+  document.getElementById('asset-group').value=gId;
+  var sel=document.getElementById('asset-holder');
+  var gm=members.filter(function(m){return m.groupId===gId});
+  sel.innerHTML='<option value="">없음</option>'+gm.map(function(m){return '<option value="'+m.id+'">'+m.name+'</option>'}).join('');
+  ['asset-name','asset-location','asset-memo'].forEach(function(i){document.getElementById(i).value=''});
+  openModal('modal-add-asset');
+}
+function addAsset(){
+  var gId=document.getElementById('asset-group').value;
+  var name=document.getElementById('asset-name').value.trim();
+  var location=document.getElementById('asset-location').value.trim();
+  var holder=document.getElementById('asset-holder').value;
+  var memo=document.getElementById('asset-memo').value.trim();
+  if(!name){showToast('비품명을 입력해 주세요');return}
+  if(!location){showToast('보관 장소를 입력해 주세요');return}
+  assets.push({id:uid(),groupId:gId,name:name,location:location,holder:holder,memo:memo});
+  save('assets',assets);closeModal('modal-add-asset');
+  showToast(name+' 추가됐어요 📦');renderGroups();
+}
+function deleteAsset(id){
+  if(!confirm('비품을 삭제할까요?'))return;
+  assets=assets.filter(function(a){return a.id!==id});
+  save('assets',assets);showToast('삭제됐어요');renderGroups();
+}
+
 function addGroup(){
   var name=document.getElementById('g-name').value.trim();
   var d=parseInt(document.getElementById('g-dues').value)||0;
@@ -1134,7 +1209,7 @@ function unpay(memberId){var ym=thisYM();delete dues[memberId+'_'+ym];save('dues
 
 // ── 백업/복원 ──
 function backupData(){
-  var data={groups:groups,members:members,dues:dues,events:events,expenses:expenses,incomes:incomes,anniversaries:anniversaries,backupDate:new Date().toISOString()};
+  var data={groups:groups,members:members,dues:dues,events:events,expenses:expenses,incomes:incomes,anniversaries:anniversaries,assets:assets,backupDate:new Date().toISOString()};
   var json=JSON.stringify(data,null,2);
   var blob=new Blob([json],{type:'application/json'});
   var url=URL.createObjectURL(blob);
@@ -1156,7 +1231,7 @@ function restoreData(){
         var data=JSON.parse(ev.target.result);
         if(!data.groups||!data.members){showToast('올바른 백업 파일이 아니에요');return}
         groups=data.groups||[];members=data.members||[];dues=data.dues||{};
-        events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];
+        events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];assets=data.assets||[];
         saveAll();showToast('복원 완료! ✅');renderAll();
       }catch(err){showToast('파일을 읽을 수 없어요')}
     };
