@@ -1086,24 +1086,40 @@ function countUnpaidMonths(memberId,baseYM){
 }
 // 전체 미납 개월 수 계산 (비연속 포함, 데이터 있는 달만)
 function totalUnpaidCount(memberId, baseYM, groupId){
-  // baseYM까지 데이터가 존재하는 달 중 미납 개월 수
+  // baseYM까지 연속/비연속 모든 미납 개월 수 계산
   var gObj=groups.find(function(g){return g.id===groupId});
   if(!gObj) return 0;
-  // 해당 모임 회원의 최초 납부/면제 기록 월 찾기 (시작점)
+  // 회원의 dues 키에서 가장 이른 달 찾기
   var allKeys=Object.keys(dues).filter(function(k){return k.indexOf(memberId+'_')===0});
-  if(!allKeys.length) return 0;
-  // 가장 이른 달 찾기
-  var earliest=allKeys.map(function(k){return k.replace(memberId+'_','')}).sort()[0];
+  // 해당 모임의 가장 이른 납부/면제 기록 또는 모임 내 다른 회원 기준으로 시작월 추정
+  var earliest=null;
+  if(allKeys.length){
+    earliest=allKeys.map(function(k){return k.replace(memberId+'_','')}).sort()[0];
+  }
+  // dues 키가 전혀 없으면 → 다른 회원의 가장 이른 기록 기준으로 시작월 추정
+  if(!earliest){
+    var groupKeys=[];
+    var gm=members.filter(function(m){return m.groupId===groupId});
+    gm.forEach(function(m){
+      Object.keys(dues).forEach(function(k){
+        if(k.indexOf(m.id+'_')===0){
+          groupKeys.push(k.replace(m.id+'_',''));
+        }
+      });
+    });
+    if(groupKeys.length) earliest=groupKeys.sort()[0];
+  }
   if(!earliest) return 0;
-  // earliest ~ baseYM 사이 미납 개월 수
+  // earliest ~ baseYM 구간에서 미납 달 수 카운트
   var cnt=0;
   var d=new Date(earliest+'-01');
   var endD=new Date(baseYM+'-01');
   while(d<=endD){
     var ym=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
     var k=memberId+'_'+ym;
-    if(dues[k]&&!dues[k].paid&&!dues[k].exempt) cnt++;
-    else if(!dues[k]) cnt++; // 키 없으면 미납으로 처리
+    var dData=dues[k];
+    // 납부나 면제가 아닌 경우 미납으로 카운트
+    if(!dData||(!dData.paid&&!dData.exempt)) cnt++;
     d.setMonth(d.getMonth()+1);
   }
   return cnt;
