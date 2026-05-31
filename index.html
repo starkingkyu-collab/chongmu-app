@@ -273,13 +273,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <!-- 탭바 (7개) -->
 <div class="tabbar">
-  <button class="tab-btn active" onclick="showPage('home',this)"><span class="tab-icon">🏠</span>홈</button>
-  <button class="tab-btn" onclick="showPage('members',this)"><span class="tab-icon">👥</span>회원</button>
-  <button class="tab-btn" onclick="showPage('dues',this)"><span class="tab-icon">💰</span>회비</button>
-  <button class="tab-btn" onclick="showPage('schedule',this)"><span class="tab-icon">📅</span>일정</button>
-  <button class="tab-btn" onclick="showPage('birthday',this)"><span class="tab-icon">🎉</span>기념일</button>
-  <button class="tab-btn" onclick="showPage('settle',this)"><span class="tab-icon">📊</span>결산</button>
-  <button class="tab-btn" onclick="showPage('groups',this)"><span class="tab-icon">⚙️</span>모임</button>
+  <button class="tab-btn active" onclick="showPage('home')" data-page="home"><span class="tab-icon">🏠</span>홈</button>
+  <button class="tab-btn" onclick="showPage('members')" data-page="members"><span class="tab-icon">👥</span>회원</button>
+  <button class="tab-btn" onclick="showPage('dues')" data-page="dues"><span class="tab-icon">💰</span>회비</button>
+  <button class="tab-btn" onclick="showPage('schedule')" data-page="schedule"><span class="tab-icon">📅</span>일정</button>
+  <button class="tab-btn" onclick="showPage('birthday')" data-page="birthday"><span class="tab-icon">🎉</span>기념일</button>
+  <button class="tab-btn" onclick="showPage('settle')" data-page="settle"><span class="tab-icon">📊</span>결산</button>
+  <button class="tab-btn" onclick="showPage('groups')" data-page="groups"><span class="tab-icon">⚙️</span>모임</button>
 </div>
 
 <button class="fab" id="fab-btn" onclick="handleFab()">＋</button>
@@ -426,12 +426,14 @@ function prevYM(){const d=new Date();d.setMonth(d.getMonth()-1);return d.getFull
 
 // ── 탭 전환 ──────────────────────────────
 let curPage='home';
-function showPage(name,btn){
+function showPage(name){
   curPage=name;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  btn.classList.add('active');
+  const page=document.getElementById('page-'+name);
+  if(page) page.classList.add('active');
+  const activeBtn=document.querySelector('.tab-btn[data-page="'+name+'"]');
+  if(activeBtn) activeBtn.classList.add('active');
   renderAll();
 }
 function handleFab(){
