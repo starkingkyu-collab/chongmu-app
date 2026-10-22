@@ -1996,14 +1996,14 @@ function backupData(){
 function restoreData(){
   if(!confirm('백업 파일을 불러오면 현재 데이터가 모두 교체됩니다.\n계속할까요?')) return;
   var input=document.createElement('input');
-  input.type='file';input.accept='.json';
+  input.type='file'; // 파일 종류 제한 없음 (갤럭시에서 파일이 회색으로 막히는 문제 방지)
   input.onchange=function(e){
     var file=e.target.files[0];
     if(!file) return;
     var reader=new FileReader();
     reader.onload=function(ev){
       try{
-        var data=JSON.parse(ev.target.result);
+        var data=JSON.parse(String(ev.target.result).replace(/^\uFEFF/,'').trim());
         if(!data.groups||!data.members){showToast('올바른 백업 파일이 아니에요');return}
         groups=data.groups||[];members=data.members||[];dues=data.dues||{};
         events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];assets=data.assets||[];splits=data.splits||[];rules=data.rules||{};attendance=data.attendance||[];
