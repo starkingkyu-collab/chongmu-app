@@ -99,6 +99,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .photo-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .storage-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:4px}
 .storage-fill{height:100%;border-radius:3px;transition:width .3s}
+.att-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;margin-right:6px}
+.att-badge-j{background:#E8F0FE;color:#1B3A6B}
+.att-badge-b{background:#FFF3E0;color:#B45309}
 .rules-editor{width:100%;min-height:300px;padding:12px;font-size:14px;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border);border-radius:var(--radius-sm);resize:vertical;line-height:1.8;color:var(--text);background:#fff;box-sizing:border-box}
 .rules-editor:focus{outline:none;border-color:var(--navy)}
 .rules-view{font-size:14px;line-height:1.9;white-space:pre-wrap;color:var(--text);padding:4px 0}
@@ -179,6 +182,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="tab-settle" style="margin-bottom:12px">
       <button class="active" onclick="setSchedTab('list',this)">📋 일정 목록</button>
       <button onclick="setSchedTab('split',this)">💸 1/N 정산</button>
+      <button onclick="setSchedTab('attend',this)">✅ 참석</button>
     </div>
     <!-- 일정 목록 탭 -->
     <div id="sched-tab-list">
@@ -188,6 +192,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <!-- 1/N 정산 탭 -->
     <div id="sched-tab-split" style="display:none">
       <div id="split-content"></div>
+    </div>
+    <!-- 참석 기록 탭 -->
+    <div id="sched-tab-attend" style="display:none">
+      <div class="chip-row" id="att-group-chips"></div>
+      <div class="chip-row" id="att-type-chips"></div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div><div class="form-label">시작 월</div><input class="form-input" type="month" id="att-start" onchange="renderAttend()"></div>
+        <div><div class="form-label">종료 월</div><input class="form-input" type="month" id="att-end" onchange="renderAttend()"></div>
+      </div>
+      <div id="att-content"></div>
     </div>
   </div>
 </div>
@@ -380,6 +394,29 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
 </div>
 
+<!-- 모달: 참석기록 -->
+<div class="modal-overlay" id="modal-add-attend" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title" id="att-modal-title">✅ 참석 기록 추가</div>
+    <input type="hidden" id="att-m-id">
+    <div class="form-group"><label class="form-label">모임</label><select class="form-select" id="att-m-group" onchange="loadAttendChips([])"></select></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">구분</label><select class="form-select" id="att-m-type"><option>정모</option><option>번개</option></select></div>
+      <div class="form-group"><label class="form-label">날짜</label><input class="form-input" id="att-m-date" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">모임명 (선택)</label><input class="form-input" id="att-m-title" placeholder="예) 1월 정기모임, 3월 번개"></div>
+    <div class="form-group">
+      <label class="form-label">참석자 선택 <span id="att-m-count" style="color:var(--navy);font-weight:700"></span></label>
+      <div style="display:flex;gap:8px;margin:6px 0">
+        <button onclick="attSelectAll(true)" style="padding:7px 12px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">전체 선택</button>
+        <button onclick="attSelectAll(false)" style="padding:7px 12px;background:#F1F1F1;color:#555;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">전체 해제</button>
+      </div>
+      <div id="att-m-chips" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+    </div>
+    <button class="btn-primary" onclick="saveAttend()">저장</button>
+    <button class="btn-secondary" onclick="closeModal('modal-add-attend')">취소</button>
+  </div>
+</div>
+
 <!-- 모달: 정산추가 -->
 <div class="modal-overlay" id="modal-add-split" onclick="closeModalOutside(event,this)">
   <div class="modal"><div class="modal-handle"></div><div class="modal-title">💸 1/N 정산 추가</div>
@@ -432,6 +469,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       </div>
       <input type="file" id="sp-photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this,'sp')">
       <div style="font-size:11px;color:var(--text2);margin-top:4px" id="sp-storage-info"></div>
+    </div>
+    <div style="background:#E8F0FE;border-radius:8px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+      <input type="checkbox" id="sp-record-attend" checked style="width:20px;height:20px;cursor:pointer">
+      <label for="sp-record-attend" style="font-size:13px;font-weight:700;color:#1B3A6B;cursor:pointer">✅ 참석 기록에도 저장 (회원만 참석으로 기록)</label>
     </div>
     <button class="btn-primary" onclick="saveSplit()">정산 저장</button>
     <button class="btn-secondary" onclick="closeModal('modal-add-split')">취소</button>
@@ -523,11 +564,12 @@ var incomes  = load('incomes')  || [];
 var anniversaries = load('anniversaries') || [];
 var assets = load('assets') || [];
 var rules  = load('rules')  || {}; // {groupId: {title, content, updatedAt}}
+var attendance = load('attendance') || []; // [{id,groupId,date,title,type,present:[memberId],splitId}]
 var splits = load('splits') || []; // [{id,groupId,title,date,place,amount,attendees:[{id,name,isExtra}],memo,noticeDate}] // [{id,groupId,name,location,holder,memo}] 비품 관리
 
 function saveAll(){
   save('groups',groups);save('members',members);save('events',events);
-  save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);save('assets',assets);save('splits',splits);save('rules',rules);
+  save('dues',dues);save('expenses',expenses);save('incomes',incomes);save('anniversaries',anniversaries);save('assets',assets);save('splits',splits);save('rules',rules);save('attendance',attendance);
 }
 function sortedMembers(arr){
   return arr.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ko')});
@@ -601,6 +643,7 @@ function handleFab(){
   if(curPage==='members'||curPage==='dues'||curPage==='birthday'){fillGroupSelect('m-group');openModal('modal-add-member')}
   else if(curPage==='schedule'){
     if(schedTab==='split'){openSplitModal();}
+    else if(schedTab==='attend'){openAttendModal('');}
     else{fillGroupSelect('e-group');document.getElementById('e-date').value=new Date().toISOString().slice(0,10);openModal('modal-add-event');}
   }
   else if(curPage==='settle'){fillGroupSelect('ex-group');document.getElementById('ex-date').value=new Date().toISOString().slice(0,10);openModal('modal-add-expense')}
@@ -621,6 +664,7 @@ function renderAll(){
   if(curPage==='schedule'){
     renderSchedule();
     if(schedTab==='split') renderSplitList();
+    if(schedTab==='attend') renderAttend();
   }
   if(curPage==='birthday') renderBirthday();
   if(curPage==='settle')   initSettle();
@@ -1192,11 +1236,13 @@ function setSchedFilter(id){schedFilter=id;renderSchedule()}
 var schedTab='list';
 function setSchedTab(tab,btn){
   schedTab=tab;
-  document.querySelectorAll('.tab-settle button').forEach(function(b){b.classList.remove('active')});
+  document.querySelectorAll('#page-schedule .tab-settle button').forEach(function(b){b.classList.remove('active')});
   btn.classList.add('active');
   document.getElementById('sched-tab-list').style.display=tab==='list'?'':'none';
   document.getElementById('sched-tab-split').style.display=tab==='split'?'':'none';
+  document.getElementById('sched-tab-attend').style.display=tab==='attend'?'':'none';
   if(tab==='split') renderSplitList();
+  if(tab==='attend') renderAttend();
 }
 
 // ── 결산 ──
@@ -1938,7 +1984,7 @@ function unpay(memberId){
 
 // ── 백업/복원 ──
 function backupData(){
-  var data={groups:groups,members:members,dues:dues,events:events,expenses:expenses,incomes:incomes,anniversaries:anniversaries,assets:assets,splits:splits,rules:rules,backupDate:new Date().toISOString()};
+  var data={groups:groups,members:members,dues:dues,events:events,expenses:expenses,incomes:incomes,anniversaries:anniversaries,assets:assets,splits:splits,rules:rules,attendance:attendance,backupDate:new Date().toISOString()};
   var json=JSON.stringify(data,null,2);
   var blob=new Blob([json],{type:'application/json'});
   var url=URL.createObjectURL(blob);
@@ -1960,7 +2006,7 @@ function restoreData(){
         var data=JSON.parse(ev.target.result);
         if(!data.groups||!data.members){showToast('올바른 백업 파일이 아니에요');return}
         groups=data.groups||[];members=data.members||[];dues=data.dues||{};
-        events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];assets=data.assets||[];splits=data.splits||[];rules=data.rules||{};
+        events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];assets=data.assets||[];splits=data.splits||[];rules=data.rules||{};attendance=data.attendance||[];
         saveAll();showToast('복원 완료! ✅');renderAll();
       }catch(err){showToast('파일을 읽을 수 없어요')}
     };
@@ -2162,6 +2208,8 @@ function openSplitModal(){
   splitExtras=[];
   splitSponsors=[];
   renderSponsors();
+  var recChk0=document.getElementById('sp-record-attend');
+  if(recChk0) recChk0.checked=true;
   resetPhotoBuffer('sp');
   var acctEl=document.getElementById('sp-account');
   if(acctEl) acctEl.value='';
@@ -2278,8 +2326,17 @@ function saveSplit(){
   var spSponsors=splitSponsors.slice();
   var sponsorTotal=spSponsors.reduce(function(s,sp){return s+sp.amount},0);
   var netAmount=Math.max(amount-sponsorTotal,0);
-  splits.push({id:uid(),groupId:gId,title:title,date:date,place:place,amount:amount,netAmount:netAmount,sponsors:spSponsors,attendees:attendees,photos:spPhotos,account:spAccount,noticeDate:null});
+  var newSplitId=uid();
+  splits.push({id:newSplitId,groupId:gId,title:title,date:date,place:place,amount:amount,netAmount:netAmount,sponsors:spSponsors,attendees:attendees,photos:spPhotos,account:spAccount,noticeDate:null});
   save('splits',splits);
+  var recChk=document.getElementById('sp-record-attend');
+  if(recChk&&recChk.checked){
+    var presentIds=attendees.filter(function(a){return !a.isExtra}).map(function(a){return a.id});
+    if(presentIds.length){
+      attendance.push({id:uid(),groupId:gId,date:date,title:title,type:inferMeetingType(title),present:presentIds,splitId:newSplitId});
+      save('attendance',attendance);
+    }
+  }
   closeModal('modal-add-split');
   resetPhotoBuffer('sp');
   showToast('정산이 추가됐어요 💸');
@@ -2702,6 +2759,210 @@ function copyRules(){
   var text=(r.title||g.name+' 회칙')+'\n\n'+r.content;
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(function(){showToast('회칙이 복사됐어요 📋')}).catch(function(){fallbackCopy(text)});
+  } else {fallbackCopy(text)}
+}
+
+
+// ── 참석 기록 / 참석률 ──
+var attGroup='all', attType='all', attSort='rate', lastAttendText='';
+
+function inferMeetingType(title){
+  var t=title||'';
+  if(t.indexOf('번개')>=0||t.indexOf('벙개')>=0) return '번개';
+  return '정모';
+}
+function ymLabel(ym){var p=ym.split('-');return p[0]+'년 '+parseInt(p[1])+'월'}
+function setAttGroup(id){attGroup=id;renderAttend()}
+function setAttType(t){attType=t;renderAttend()}
+function toggleAttSort(){attSort=attSort==='rate'?'name':'rate';renderAttend()}
+
+function renderAttend(){
+  var sEl=document.getElementById('att-start'), eEl=document.getElementById('att-end');
+  if(!sEl.value) sEl.value=new Date().getFullYear()+'-01';
+  if(!eEl.value) eEl.value=thisYM();
+  var ymStart=sEl.value, ymEnd=eEl.value;
+  if(ymEnd<ymStart) ymEnd=ymStart;
+
+  var gChips=[{id:'all',name:'전체'}].concat(groups);
+  document.getElementById('att-group-chips').innerHTML=gChips.map(function(g){
+    return '<div class="chip'+(attGroup===g.id?' sel':'')+'" data-gid="'+g.id+'" onclick="setAttGroup(this.dataset.gid)">'+g.name+'</div>';
+  }).join('');
+  var tChips=[{id:'all',name:'정모+번개'},{id:'정모',name:'정모'},{id:'번개',name:'번개'}];
+  document.getElementById('att-type-chips').innerHTML=tChips.map(function(t){
+    return '<div class="chip'+(attType===t.id?' sel':'')+'" data-t="'+t.id+'" onclick="setAttType(this.dataset.t)">'+t.name+'</div>';
+  }).join('');
+
+  var recs=attendance.filter(function(r){
+    var ym=r.date.slice(0,7);
+    if(ym<ymStart||ym>ymEnd) return false;
+    if(attGroup!=='all'&&r.groupId!==attGroup) return false;
+    if(attType!=='all'&&r.type!==attType) return false;
+    return true;
+  }).sort(function(a,b){return b.date.localeCompare(a.date)});
+
+  var nJ=recs.filter(function(r){return r.type==='정모'}).length;
+  var nB=recs.filter(function(r){return r.type==='번개'}).length;
+
+  var ms=members.filter(function(m){return attGroup==='all'||m.groupId===attGroup});
+  var rows=ms.map(function(m){
+    var mine=recs.filter(function(r){return r.groupId===m.groupId});
+    var cnt=mine.filter(function(r){return r.present.indexOf(m.id)>=0}).length;
+    return {m:m,total:mine.length,cnt:cnt,rate:mine.length?Math.round(cnt/mine.length*100):-1};
+  });
+  rows.sort(function(a,b){
+    if(attSort==='name') return a.m.name.localeCompare(b.m.name,'ko');
+    if(b.rate!==a.rate) return b.rate-a.rate;
+    return a.m.name.localeCompare(b.m.name,'ko');
+  });
+
+  var gObj=attGroup==='all'?null:groups.find(function(g){return g.id===attGroup});
+  var typeLabel=attType==='all'?'정모+번개':attType;
+  var period=ymLabel(ymStart)+' ~ '+ymLabel(ymEnd);
+
+  // 카톡용 텍스트
+  var tl=['📊 ['+(gObj?gObj.name:'전체 모임')+'] 참석률',period+' · '+typeLabel+' 총 '+recs.length+'회','━━━━━━━━━━━━━━━━'];
+  rows.forEach(function(x,i){
+    if(x.rate<0) tl.push((i+1)+'. '+x.m.name+' - 기록 없음');
+    else tl.push((i+1)+'. '+x.m.name+' '+x.cnt+'/'+x.total+'회 ('+x.rate+'%)');
+  });
+  lastAttendText=tl.join('\n');
+
+  function rateColor(r){return r>=70?'var(--mint)':r>=40?'var(--amber)':'var(--red)'}
+
+  var html='<div style="display:flex;gap:8px;margin-bottom:12px">'
+    +'<button onclick="openAttendModal(\'\')" style="flex:1;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ 모임 기록 추가</button>'
+    +'<button onclick="importAttendFromSplits()" style="flex:1;padding:11px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">💸 정산에서 가져오기</button>'
+    +'</div>';
+
+  html+='<div class="card">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+    +'<div style="font-size:15px;font-weight:700">📊 참석률</div>'
+    +'<button onclick="toggleAttSort()" style="background:none;border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text2);cursor:pointer;font-family:inherit">정렬: '+(attSort==='rate'?'참석률순':'가나다순')+'</button>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+period+' · 총 '+recs.length+'회 (정모 '+nJ+' · 번개 '+nB+')</div>';
+  if(!recs.length){
+    html+='<div style="text-align:center;padding:24px 0;color:var(--text2);font-size:13px">이 기간에 기록된 모임이 없어요<br>위의 + 버튼으로 지난 모임도 입력할 수 있어요</div>';
+  } else {
+    html+=rows.map(function(x){
+      var g=groups.find(function(g){return g.id===x.m.groupId});
+      var badge=(attGroup==='all'&&g)?' <span style="font-size:11px;color:var(--text2);font-weight:400">'+g.name+'</span>':'';
+      if(x.rate<0){
+        return '<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:700">'+x.m.name+badge+'</span><span style="font-size:12px;color:var(--text2)">기록 없음</span></div>';
+      }
+      var c=rateColor(x.rate);
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'
+        +'<div style="display:flex;justify-content:space-between;align-items:baseline">'
+        +'<span style="font-size:14px;font-weight:700">'+x.m.name+badge+'</span>'
+        +'<span style="font-size:13px;color:var(--text2)">'+x.cnt+' / '+x.total+'회 · <b style="color:'+c+'">'+x.rate+'%</b></span></div>'
+        +'<div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:'+x.rate+'%;background:'+c+'"></div></div></div>';
+    }).join('');
+  }
+  html+='</div>';
+  if(recs.length){
+    html+='<button onclick="copyAttendStats()" style="width:100%;padding:13px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px">📋 참석률 카톡용 복사</button>';
+  }
+
+  // 모임 기록 목록
+  if(recs.length){
+    html+='<div style="font-size:14px;font-weight:700;margin:8px 0">🗂️ 모임 기록 ('+recs.length+'건)</div>';
+    html+=recs.map(function(r){
+      var g=groups.find(function(g){return g.id===r.groupId});
+      var total=members.filter(function(m){return m.groupId===r.groupId}).length;
+      var dp=r.date.split('-');
+      var bcls=r.type==='번개'?'att-badge-b':'att-badge-j';
+      return '<div class="card" style="margin-bottom:8px"><div style="display:flex;align-items:center;gap:10px">'
+        +'<div class="event-date-box"><div class="event-day">'+parseInt(dp[2])+'</div><div class="event-month">'+parseInt(dp[1])+'월</div></div>'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:14px;font-weight:700"><span class="att-badge '+bcls+'">'+r.type+'</span>'+escHtml(r.title||'')+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+(g?g.name+' · ':'')+'참석 '+r.present.length+' / '+total+'명</div></div>'
+        +'<div style="display:flex;flex-direction:column;gap:6px">'
+        +'<button data-id="'+r.id+'" onclick="openAttendModal(this.dataset.id)" style="font-size:11px;padding:6px 10px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;font-weight:700">수정</button>'
+        +'<button data-id="'+r.id+'" onclick="deleteAttend(this.dataset.id)" class="btn-danger" style="font-size:11px;padding:6px 10px">삭제</button>'
+        +'</div></div></div>';
+    }).join('');
+  }
+  document.getElementById('att-content').innerHTML=html;
+}
+
+function openAttendModal(id){
+  if(!groups.length){showToast('먼저 모임을 추가해 주세요');return}
+  fillGroupSelect('att-m-group');
+  var rec=id?attendance.find(function(r){return r.id===id}):null;
+  document.getElementById('att-m-id').value=rec?rec.id:'';
+  document.getElementById('att-modal-title').textContent=rec?'✅ 참석 기록 수정':'✅ 참석 기록 추가';
+  document.getElementById('att-m-group').value=rec?rec.groupId:(attGroup!=='all'?attGroup:groups[0].id);
+  document.getElementById('att-m-type').value=rec?rec.type:'정모';
+  document.getElementById('att-m-date').value=rec?rec.date:new Date().toISOString().slice(0,10);
+  document.getElementById('att-m-title').value=rec?(rec.title||''):'';
+  loadAttendChips(rec?rec.present:[]);
+  openModal('modal-add-attend');
+}
+function loadAttendChips(presentIds){
+  var gId=document.getElementById('att-m-group').value;
+  var gm=sortedMembers(members.filter(function(m){return m.groupId===gId}));
+  document.getElementById('att-m-chips').innerHTML=gm.map(function(m){
+    var on=presentIds.indexOf(m.id)>=0;
+    return '<div class="attend-chip'+(on?' sel':'')+'" data-mid="'+m.id+'" onclick="toggleAttChip(this)">'+m.name+'</div>';
+  }).join('');
+  updateAttCount();
+}
+function toggleAttChip(el){el.classList.toggle('sel');updateAttCount()}
+function attSelectAll(flag){
+  document.querySelectorAll('#att-m-chips .attend-chip').forEach(function(c){
+    if(flag) c.classList.add('sel'); else c.classList.remove('sel');
+  });
+  updateAttCount();
+}
+function updateAttCount(){
+  var all=document.querySelectorAll('#att-m-chips .attend-chip').length;
+  var sel=document.querySelectorAll('#att-m-chips .attend-chip.sel').length;
+  document.getElementById('att-m-count').textContent='('+sel+' / '+all+'명)';
+}
+function saveAttend(){
+  var id=document.getElementById('att-m-id').value;
+  var gId=document.getElementById('att-m-group').value;
+  var type=document.getElementById('att-m-type').value;
+  var date=document.getElementById('att-m-date').value;
+  var title=document.getElementById('att-m-title').value.trim();
+  if(!date){showToast('날짜를 입력해 주세요');return}
+  var present=[];
+  document.querySelectorAll('#att-m-chips .attend-chip.sel').forEach(function(c){present.push(c.dataset.mid)});
+  if(!present.length){showToast('참석자를 1명 이상 선택해 주세요');return}
+  var rec=id?attendance.find(function(r){return r.id===id}):null;
+  if(rec){rec.groupId=gId;rec.type=type;rec.date=date;rec.title=title;rec.present=present;}
+  else attendance.push({id:uid(),groupId:gId,date:date,title:title,type:type,present:present,splitId:''});
+  save('attendance',attendance);
+  closeModal('modal-add-attend');
+  showToast('참석 기록이 저장됐어요 ✅');
+  renderAttend();
+}
+function deleteAttend(id){
+  if(!confirm('이 모임의 참석 기록을 삭제할까요?')) return;
+  attendance=attendance.filter(function(r){return r.id!==id});
+  save('attendance',attendance);
+  showToast('삭제됐어요');
+  renderAttend();
+}
+function importAttendFromSplits(){
+  var pending=splits.filter(function(s){
+    if(attendance.some(function(r){return r.splitId===s.id})) return false;
+    return (s.attendees||[]).some(function(a){return !a.isExtra});
+  });
+  if(!pending.length){showToast('새로 가져올 정산 내역이 없어요');return}
+  if(!confirm('정산 내역 '+pending.length+'건을 참석 기록으로 가져올까요?\n(이미 직접 입력한 모임이 있으면 중복될 수 있어요)')) return;
+  pending.forEach(function(s){
+    var ids=(s.attendees||[]).filter(function(a){return !a.isExtra}).map(function(a){return a.id});
+    attendance.push({id:uid(),groupId:s.groupId,date:s.date,title:s.title,type:inferMeetingType(s.title),present:ids,splitId:s.id});
+  });
+  save('attendance',attendance);
+  showToast(pending.length+'건을 가져왔어요 ✅');
+  renderAttend();
+}
+function copyAttendStats(){
+  if(!lastAttendText){showToast('복사할 내용이 없어요');return}
+  var text=lastAttendText;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){showToast('참석률이 복사됐어요 📋')}).catch(function(){fallbackCopy(text)});
   } else {fallbackCopy(text)}
 }
 
