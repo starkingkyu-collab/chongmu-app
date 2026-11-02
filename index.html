@@ -138,6 +138,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
   <div style="padding:16px">
     <div id="home-bday-alert"></div>
+    <div id="home-backup-alert"></div>
+    <div id="home-attend-prompt"></div>
     <div class="section-label">회비 수금 현황</div><div id="home-dues-summary"></div>
     <div class="section-label">다가오는 일정</div><div id="home-events"></div>
     <div class="section-label">미납 회원</div><div id="home-unpaid"></div>
@@ -258,7 +260,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <div class="page" id="page-groups">
   <div class="header"><h1>⚙️ 모임 관리</h1><div class="header-sub" style="margin-top:4px">모임 추가 · 수정 · 삭제</div></div>
   <div style="padding:16px">
-    <button onclick="openModal('modal-backup')" style="width:100%;padding:13px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px">💾 데이터 백업 / 복원</button>
+    <button onclick="renderBackupInfo();openModal('modal-backup')" style="width:100%;padding:13px;background:#E8F0FE;color:#1B3A6B;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px">💾 데이터 백업 / 복원</button>
     <div id="groups-storage"></div>
     <div id="groups-list"></div>
   </div>
@@ -343,6 +345,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <div class="form-group"><label class="form-label">시간</label><input class="form-input" id="e-time" type="time"></div>
     </div>
     <div class="form-group"><label class="form-label">장소</label><input class="form-input" id="e-place" placeholder="예) 대구 달서구 OO식당"></div>
+    <div class="form-group"><label class="form-label">📍 지역 (선택 — 참석 기록 때 자동으로 채워져요)</label><input class="form-input" id="e-region" list="region-datalist" placeholder="예) 강남, 수원 인계동" autocomplete="off"></div>
     <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="e-memo"></div>
     <button class="btn-primary" onclick="addEvent()">일정 추가</button>
     <button class="btn-secondary" onclick="closeModal('modal-add-event')">취소</button>
@@ -398,7 +401,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <!-- 모달: 참석기록 -->
 <div class="modal-overlay" id="modal-add-attend" onclick="closeModalOutside(event,this)">
   <div class="modal"><div class="modal-handle"></div><div class="modal-title" id="att-modal-title">✅ 참석 기록 추가</div>
-    <input type="hidden" id="att-m-id">
+    <input type="hidden" id="att-m-id"><input type="hidden" id="att-m-event">
     <div class="form-group"><label class="form-label">모임</label><select class="form-select" id="att-m-group" onchange="loadAttendChips([])"></select></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">구분</label><select class="form-select" id="att-m-type"><option>정모</option><option>번개</option></select></div>
@@ -527,14 +530,30 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <!-- 모달: 비품추가 -->
 <div class="modal-overlay" id="modal-add-asset" onclick="closeModalOutside(event,this)">
-  <div class="modal"><div class="modal-handle"></div><div class="modal-title">📦 비품 추가</div>
-    <div class="form-group"><label class="form-label">모임</label><select class="form-select" id="asset-group"></select></div>
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title" id="asset-modal-title">📦 비품 추가</div>
+    <input type="hidden" id="asset-id">
+    <div class="form-group"><label class="form-label">모임</label><select class="form-select" id="asset-group" onchange="fillAssetHolders('')"></select></div>
     <div class="form-group"><label class="form-label">비품명</label><input class="form-input" id="asset-name" placeholder="예) 근조기, 축기, 현수막"></div>
     <div class="form-group"><label class="form-label">보관 장소</label><input class="form-input" id="asset-location" placeholder="예) 홍길동 자택, 창고"></div>
     <div class="form-group"><label class="form-label">보관자 (선택)</label><select class="form-select" id="asset-holder"><option value="">없음</option></select></div>
     <div class="form-group"><label class="form-label">메모 (선택)</label><input class="form-input" id="asset-memo" placeholder="예) 검정색 대형, 2개 보유"></div>
-    <button class="btn-primary" onclick="addAsset()">비품 추가</button>
+    <div id="asset-history" style="font-size:12px;color:var(--text2);margin:-4px 0 12px;line-height:1.6"></div>
+    <button class="btn-primary" id="asset-save-btn" onclick="addAsset()">비품 추가</button>
     <button class="btn-secondary" onclick="closeModal('modal-add-asset')">취소</button>
+  </div>
+</div>
+
+<!-- 모달: 연간 리포트 -->
+<div class="modal-overlay" id="modal-annual" onclick="closeModalOutside(event,this)">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">🎉 연간 결산 리포트</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">모임</label><select class="form-select" id="annual-group" onchange="drawAnnualPreview()"></select></div>
+      <div class="form-group"><label class="form-label">연도</label><select class="form-select" id="annual-year" onchange="drawAnnualPreview()"></select></div>
+    </div>
+    <div id="annual-preview" style="margin-bottom:12px"></div>
+    <button class="btn-primary" onclick="saveAnnualImage()">📸 이미지 저장</button>
+    <div style="font-size:12px;color:var(--text2);text-align:center;margin-top:6px">저장이 안 되면 위 이미지를 길게 눌러 저장하세요</div>
+    <button class="btn-secondary" onclick="closeModal('modal-annual')">닫기</button>
   </div>
 </div>
 
@@ -542,8 +561,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <div class="modal-overlay" id="modal-backup" onclick="closeModalOutside(event,this)">
   <div class="modal"><div class="modal-handle"></div><div class="modal-title">💾 데이터 백업 / 복원</div>
     <div style="background:#E8F0FE;border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:13px;color:#1B3A6B;line-height:1.7">
-      📱 폰을 바꾸거나 앱을 새로 받을 때 백업 파일로 데이터를 그대로 옮길 수 있어요.
+      📱 폰을 바꾸거나 앱을 새로 받을 때 백업 파일로 데이터를 그대로 옮길 수 있어요.<br>
+      🔒 데이터는 이 폰의 브라우저에만 저장돼요. 브라우저 기록·데이터를 지우면 사라지니 한 달에 한 번은 백업해 두세요.
     </div>
+    <div id="backup-last-info" style="font-size:13px;font-weight:700;margin-bottom:14px"></div>
     <div class="form-group">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px">📤 내보내기 (백업)</div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:10px">현재 모든 데이터를 JSON 파일로 저장해요</div>
@@ -562,7 +583,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <script>
 // ── 저장소 ──
 function load(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
-function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v));try{localStorage.setItem('lastChange',new Date().toISOString())}catch(e){}}
 
 var groups   = load('groups')   || [];
 var members  = load('members')  || [];
@@ -653,7 +674,7 @@ function handleFab(){
   else if(curPage==='schedule'){
     if(schedTab==='split'){openSplitModal();}
     else if(schedTab==='attend'){openAttendModal('');}
-    else{fillGroupSelect('e-group');document.getElementById('e-date').value=new Date().toISOString().slice(0,10);openModal('modal-add-event');}
+    else{fillGroupSelect('e-group');document.getElementById('e-date').value=new Date().toISOString().slice(0,10);fillRegionDatalist();openModal('modal-add-event');}
   }
   else if(curPage==='settle'){fillGroupSelect('ex-group');document.getElementById('ex-date').value=new Date().toISOString().slice(0,10);openModal('modal-add-expense')}
   else if(curPage==='groups'){openModal('modal-add-group')}
@@ -694,6 +715,8 @@ function renderHome(){
   // 생일 알림
   var bAlert=getBdayAlert();
   document.getElementById('home-bday-alert').innerHTML=bAlert;
+  document.getElementById('home-backup-alert').innerHTML=getBackupAlert();
+  document.getElementById('home-attend-prompt').innerHTML=getAttendPrompt();
 
   // 모임별 회비현황
   var dh='';
@@ -1232,10 +1255,17 @@ function eventCard(e,isPast){
     +'<div style="flex:1">'
     +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><div style="font-size:14px;font-weight:700">'+e.title+'</div>'
     +'<span class="badge '+(e.done?'badge-done':'badge-plan')+'">'+(e.done?'완료':'예정')+'</span></div>'
-    +'<div style="font-size:12px;color:var(--text2);margin-top:3px">'+e.place+(e.time?' · '+e.time:'')+'</div>'
+    +'<div style="font-size:12px;color:var(--text2);margin-top:3px">'+(e.region?'📍 '+escHtml(e.region)+' · ':'')+(e.place||'')+(e.time?' · '+e.time:'')+'</div>'
     +(e.memo?'<div style="font-size:12px;color:var(--text2);margin-top:2px">📝 '+e.memo+'</div>':'')
     +(g?'<div style="margin-top:5px"><span class="badge badge-group">'+g.name+'</span></div>':'')
-    +'<div style="display:flex;gap:8px;margin-top:8px">'
+    +(function(){
+      var today=new Date().toISOString().slice(0,10);
+      if(e.date>today) return '';
+      var rec=attendForEvent(e);
+      return rec?'<div style="font-size:12px;color:var(--mint);font-weight:700;margin-top:6px">✅ 참석 '+rec.present.length+'명 기록됨</div>':'';
+    }())
+    +'<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">'
+    +((e.date<=new Date().toISOString().slice(0,10))?'<button data-eid="'+e.id+'" onclick="openAttendFromEvent(this.dataset.eid)" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">'+(attendForEvent(e)?'✏️ 참석 수정':'✅ 참석 기록')+'</button>':'')
     +(!e.done?'<button onclick="markEventDone(\''+e.id+'\')" style="background:var(--mint);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">완료처리</button>':'')
     +'<button onclick="deleteEvent(\''+e.id+'\')" class="btn-danger" style="font-size:12px;padding:6px 12px">삭제</button>'
     +'</div></div></div></div>';
@@ -1521,18 +1551,8 @@ function renderSettle(){
       return label;
     });
 
-    // 다가오는 일정 (종료월 다음달)
-    var nextMonthD=new Date(ymEnd+'-01');
-    nextMonthD.setMonth(nextMonthD.getMonth()+1);
-    var nextYM=nextMonthD.getFullYear()+'-'+String(nextMonthD.getMonth()+1).padStart(2,'0');
-    var nextMonthNum=nextMonthD.getMonth()+1;
-    var upcomingEvents=events.filter(function(e){
-      return e.groupId===gId&&!e.done&&e.date.startsWith(nextYM);
-    }).sort(function(a,b){return a.date.localeCompare(b.date)});
-    var upcomingAnnivs=anniversaries.filter(function(a){
-      var am=a.date.startsWith('--')?parseInt(a.date.slice(2,4)):parseInt(a.date.split('-')[1]);
-      return (a.groupId===gId||a.groupId==='all')&&am===nextMonthNum;
-    });
+    // 다가오는 일정 (종료월 다음달부터 3개월 — 지난 달 결산이면 이번 달부터, 오늘 이전 일정 제외)
+    var upcoming=upcomingScheduleItems(gId,ymEnd,3);
 
     var noticeLines=[
       '📢 ['+g.name+'] '+periodLabel+' 회비 결산 공지',
@@ -1583,26 +1603,17 @@ function renderSettle(){
       '─────────────────',
       '• 누적 잔액: '+(totalBalance>=0?'+':'')+totalBalance.toLocaleString()+'원'
     ]);
-    // 참석·지역 요약
-    var nAtt=settleAttendData(g,ymStart,ymEnd);
-    if(nAtt.recs.length){
+    // 참석·지역 요약 + 참석률 (기간 기록이 없어도 과거 기록이 있으면 누적 참석률 표시)
+    noticeLines=noticeLines.concat(attendNoticeLines(g,ymStart,ymEnd));
+    // 다가오는 일정/기념일 (3개월)
+    if(upcoming.items.length){
       noticeLines.push('','━━━━━━━━━━━━━━━━');
-      noticeLines.push('✅ 모임 현황 (정모 '+nAtt.nJ+' · 번개 '+nAtt.nB+' · 평균 '+nAtt.avg+'명 참석)');
-      var nrl=regionTextLines(nAtt.recs);
-      if(nrl.length){noticeLines.push('📍 모임 지역');nrl.forEach(function(l){noticeLines.push(l)});}
-      if(nAtt.perfect.length) noticeLines.push('🏅 개근: '+nAtt.perfect.join(', '));
-    }
-    // 다가오는 일정/기념일 추가
-    if(upcomingEvents.length||upcomingAnnivs.length){
-      noticeLines.push('','━━━━━━━━━━━━━━━━');
-      noticeLines.push('📅 '+nextMonthNum+'월 일정 안내');
-      upcomingEvents.forEach(function(e){
-        var parts=e.date.split('-');
-        noticeLines.push('• '+parseInt(parts[1])+'월 '+parseInt(parts[2])+'일 '+e.title+(e.place?' ('+e.place+')':''));
-      });
-      upcomingAnnivs.forEach(function(a){
-        var dd=a.date.startsWith('--')?parseInt(a.date.slice(5,7)):parseInt(a.date.split('-')[2]);
-        noticeLines.push('• '+nextMonthNum+'월 '+dd+'일 '+a.title+(a.memo?' ('+a.memo+')':''));
+      noticeLines.push('📅 다가오는 일정 ('+upcoming.label+')');
+      var curM='';
+      upcoming.items.forEach(function(it){
+        var mo=parseInt(it.date.split('-')[1]), dd=parseInt(it.date.split('-')[2]);
+        if(upcoming.multi&&it.date.slice(0,7)!==curM){curM=it.date.slice(0,7);noticeLines.push('['+mo+'월]');}
+        noticeLines.push('• '+mo+'월 '+dd+'일('+it.dow+') '+it.text);
       });
     }
     // 비품 현황 추가
@@ -1677,7 +1688,9 @@ function renderGroups(){
             +'<div style="flex:1;min-width:0">'
             +'<div style="font-size:13px;font-weight:700">'+a.name+'</div>'
             +'<div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 '+a.location+(h?' · '+h.name:'')+(a.memo?' · '+a.memo:'')+'</div>'
+            +(a.updated?'<div style="font-size:11px;color:var(--text2)">'+fmtYMD(a.updated)+'부터 보관</div>':'')
             +'</div>'
+            +'<button data-aid="'+a.id+'" onclick="openEditAsset(this.dataset.aid)" style="background:#E8F0FE;color:#1B3A6B;border:none;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;padding:5px 10px;flex-shrink:0;font-family:inherit">수정</button>'
             +'<button data-aid="'+a.id+'" onclick="deleteAsset(this.dataset.aid)" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;padding:4px;flex-shrink:0">✕</button>'
             +'</div>';
         }).join(''):'<div style="font-size:12px;color:var(--text2);text-align:center;padding:8px">등록된 비품이 없어요</div>';
@@ -1729,7 +1742,32 @@ function deleteGroup(id){
 }
 
 // ── CRUD ──
+function fillAssetHolders(sel){
+  var gId=document.getElementById('asset-group').value;
+  var h=document.getElementById('asset-holder');
+  h.innerHTML='<option value="">없음</option>'+sortedMembers(members.filter(function(m){return m.groupId===gId})).map(function(m){return '<option value="'+m.id+'">'+m.name+'</option>'}).join('');
+  h.value=sel||'';
+}
+function openEditAsset(id){
+  var a=assets.find(function(x){return x.id===id}); if(!a) return;
+  fillGroupSelect('asset-group');
+  document.getElementById('asset-group').value=a.groupId;
+  fillAssetHolders(a.holder);
+  document.getElementById('asset-id').value=a.id;
+  document.getElementById('asset-name').value=a.name;
+  document.getElementById('asset-location').value=a.location||'';
+  document.getElementById('asset-memo').value=a.memo||'';
+  document.getElementById('asset-modal-title').textContent='📦 비품 수정 · 보관자 변경';
+  document.getElementById('asset-save-btn').textContent='저장';
+  var hist=(a.history||[]).slice(-5).reverse();
+  document.getElementById('asset-history').innerHTML=hist.length?'🕘 보관 이력<br>'+hist.map(function(h){return '· '+(h.date?fmtYMD(h.date):'이전')+' '+escHtml(h.location)+(h.holderName?' ('+escHtml(h.holderName)+')':'')}).join('<br>'):'';
+  openModal('modal-add-asset');
+}
 function openAddAsset(gId){
+  document.getElementById('asset-id').value='';
+  document.getElementById('asset-modal-title').textContent='📦 비품 추가';
+  document.getElementById('asset-save-btn').textContent='비품 추가';
+  document.getElementById('asset-history').innerHTML='';
   fillGroupSelect('asset-group');
   document.getElementById('asset-group').value=gId;
   var sel=document.getElementById('asset-holder');
@@ -1746,7 +1784,19 @@ function addAsset(){
   var memo=document.getElementById('asset-memo').value.trim();
   if(!name){showToast('비품명을 입력해 주세요');return}
   if(!location){showToast('보관 장소를 입력해 주세요');return}
-  assets.push({id:uid(),groupId:gId,name:name,location:location,holder:holder,memo:memo});
+  var editId=document.getElementById('asset-id').value;
+  var today=new Date().toISOString().slice(0,10);
+  var hm=holder?members.find(function(m){return m.id===holder}):null;
+  var entry={date:today,location:location,holderName:hm?hm.name:''};
+  var ex=editId?assets.find(function(a){return a.id===editId}):null;
+  if(ex){
+    var moved=ex.location!==location||(ex.holder||'')!==holder;
+    if(!ex.history) ex.history=[{date:ex.updated||'',location:ex.location,holderName:(function(){var m=members.find(function(m){return m.id===ex.holder});return m?m.name:''}())}];
+    ex.groupId=gId;ex.name=name;ex.location=location;ex.holder=holder;ex.memo=memo;
+    if(moved){ex.updated=today;ex.history.push(entry);}
+    save('assets',assets);closeModal('modal-add-asset');showToast(moved?'보관 정보가 변경됐어요 📦':'저장됐어요');renderGroups();return;
+  }
+  assets.push({id:uid(),groupId:gId,name:name,location:location,holder:holder,memo:memo,updated:today,history:[entry]});
   save('assets',assets);closeModal('modal-add-asset');
   showToast(name+' 추가됐어요 📦');renderGroups();
 }
@@ -1814,12 +1864,13 @@ function addEvent(){
   var date=document.getElementById('e-date').value;
   var time=document.getElementById('e-time').value;
   var place=document.getElementById('e-place').value.trim();
+  var region=normRegion(document.getElementById('e-region').value);
   var memo=document.getElementById('e-memo').value.trim();
   if(!title){showToast('제목을 입력해 주세요');return}
   if(!date){showToast('날짜를 선택해 주세요');return}
-  events.push({id:uid(),groupId:gId,title:title,date:date,time:time,place:place,memo:memo,done:false});
+  events.push({id:uid(),groupId:gId,title:title,date:date,time:time,place:place,region:region,memo:memo,done:false});
   save('events',events);closeModal('modal-add-event');
-  ['e-title','e-place','e-memo','e-time'].forEach(function(i){document.getElementById(i).value=''});
+  ['e-title','e-place','e-region','e-memo','e-time'].forEach(function(i){document.getElementById(i).value=''});
   showToast('일정이 추가됐어요 📅');renderAll();
 }
 function deleteEvent(id){if(!confirm('삭제할까요?'))return;events=events.filter(function(e){return e.id!==id});save('events',events);showToast('삭제됐어요');renderAll()}
@@ -2010,7 +2061,11 @@ function backupData(){
   var a=document.createElement('a');
   var date=new Date().toISOString().slice(0,10).replace(/-/g,'');
   a.href=url;a.download='총무앱_백업_'+date+'.json';a.click();
-  URL.revokeObjectURL(url);showToast('백업 파일이 다운로드됐어요 💾');
+  setTimeout(function(){URL.revokeObjectURL(url)},1500);
+  try{localStorage.setItem('lastBackup',new Date().toISOString())}catch(e){}
+  showToast('백업 파일이 다운로드됐어요 💾');
+  renderBackupInfo();
+  if(curPage==='home') renderHome();
 }
 function restoreData(){
   if(!confirm('백업 파일을 불러오면 현재 데이터가 모두 교체됩니다.\n계속할까요?')) return;
@@ -2026,7 +2081,8 @@ function restoreData(){
         if(!data.groups||!data.members){showToast('올바른 백업 파일이 아니에요');return}
         groups=data.groups||[];members=data.members||[];dues=data.dues||{};
         events=data.events||[];expenses=data.expenses||[];incomes=data.incomes||[];anniversaries=data.anniversaries||[];assets=data.assets||[];splits=data.splits||[];rules=data.rules||{};attendance=data.attendance||[];
-        saveAll();showToast('복원 완료! ✅');renderAll();
+        saveAll();try{localStorage.setItem('lastBackup',data.backupDate||new Date().toISOString())}catch(e){}
+        showToast('복원 완료! ✅');renderAll();
       }catch(err){showToast('파일을 읽을 수 없어요')}
     };
     reader.readAsText(file);
@@ -2992,6 +3048,7 @@ function openAttendModal(id){
   fillGroupSelect('att-m-group');
   var rec=id?attendance.find(function(r){return r.id===id}):null;
   document.getElementById('att-m-id').value=rec?rec.id:'';
+  document.getElementById('att-m-event').value=rec?(rec.eventId||''):'';
   document.getElementById('att-modal-title').textContent=rec?'✅ 참석 기록 수정':'✅ 참석 기록 추가';
   document.getElementById('att-m-group').value=rec?rec.groupId:(attGroup!=='all'?attGroup:groups[0].id);
   document.getElementById('att-m-type').value=rec?rec.type:'정모';
@@ -3035,13 +3092,18 @@ function saveAttend(){
   var present=[];
   document.querySelectorAll('#att-m-chips .attend-chip.sel').forEach(function(c){present.push(c.dataset.mid)});
   if(!present.length){showToast('참석자를 1명 이상 선택해 주세요');return}
+  var evId=document.getElementById('att-m-event').value;
   var rec=id?attendance.find(function(r){return r.id===id}):null;
-  if(rec){rec.groupId=gId;rec.type=type;rec.date=date;rec.title=title;rec.region=region;rec.present=present;}
-  else attendance.push({id:uid(),groupId:gId,date:date,title:title,type:type,region:region,present:present,splitId:''});
+  if(rec){rec.groupId=gId;rec.type=type;rec.date=date;rec.title=title;rec.region=region;rec.present=present;if(evId)rec.eventId=evId;}
+  else attendance.push({id:uid(),groupId:gId,date:date,title:title,type:type,region:region,present:present,splitId:'',eventId:evId||''});
   save('attendance',attendance);
+  if(evId){
+    var ev=events.find(function(e){return e.id===evId});
+    if(ev){ev.done=true;if(region&&!ev.region)ev.region=region;save('events',events);}
+  }
   closeModal('modal-add-attend');
   showToast('참석 기록이 저장됐어요 ✅');
-  renderAttend();
+  renderAll();
 }
 function deleteAttend(id){
   if(!confirm('이 모임의 참석 기록을 삭제할까요?')) return;
@@ -3065,6 +3127,300 @@ function importAttendFromSplits(){
   showToast(pending.length+'건을 가져왔어요 ✅');
   renderAttend();
 }
+// ── 일정 ↔ 참석 기록 연결 ──
+function attendForEvent(e){
+  return attendance.find(function(r){return r.eventId===e.id})
+    ||attendance.find(function(r){return !r.eventId&&r.groupId===e.groupId&&r.date===e.date});
+}
+function openAttendFromEvent(evId){
+  var e=events.find(function(x){return x.id===evId}); if(!e) return;
+  var rec=attendForEvent(e);
+  if(rec){openAttendModal(rec.id);document.getElementById('att-m-event').value=e.id;return;}
+  openAttendModal('');
+  document.getElementById('att-m-group').value=e.groupId;
+  loadAttendChips([]);
+  document.getElementById('att-m-event').value=e.id;
+  document.getElementById('att-m-date').value=e.date;
+  document.getElementById('att-m-title').value=e.title||'';
+  document.getElementById('att-m-type').value=inferMeetingType(e.title);
+  document.getElementById('att-m-region').value=e.region||'';
+}
+function pendingAttendEvents(){
+  // 최근 45일 안에 지난 일정 중 참석 기록이 없는 것
+  var today=new Date().toISOString().slice(0,10);
+  var from=new Date(); from.setDate(from.getDate()-45); var fromS=from.toISOString().slice(0,10);
+  return events.filter(function(e){
+    return e.date<=today&&e.date>=fromS&&!e.skipAttend&&!attendForEvent(e);
+  }).sort(function(a,b){return b.date.localeCompare(a.date)});
+}
+function getAttendPrompt(){
+  var list=pendingAttendEvents();
+  if(!list.length) return '';
+  return '<div class="card" style="border-left:4px solid var(--navy)">'
+    +'<div style="font-size:14px;font-weight:700;margin-bottom:4px">📝 참석 기록이 아직 없어요</div>'
+    +'<div style="font-size:12px;color:var(--text2);margin-bottom:6px">지난 일정을 눌러 참석자를 체크하면 참석률·지역 통계에 반영돼요</div>'
+    +list.slice(0,3).map(function(e){
+      var g=groups.find(function(g){return g.id===e.groupId});
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border)">'
+        +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+fmtYMD(e.date)+' '+escHtml(e.title)+'</div>'
+        +'<div style="font-size:12px;color:var(--text2)">'+(g?escHtml(g.name):'')+(e.region?' · 📍 '+escHtml(e.region):'')+'</div></div>'
+        +'<button data-eid="'+e.id+'" onclick="openAttendFromEvent(this.dataset.eid)" style="background:var(--navy);color:#fff;border:none;border-radius:20px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">기록</button>'
+        +'<button data-eid="'+e.id+'" onclick="skipAttendEvent(this.dataset.eid)" title="기록 안 함" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;padding:4px;flex-shrink:0">✕</button>'
+        +'</div>';
+    }).join('')
+    +(list.length>3?'<div style="font-size:12px;color:var(--text2);text-align:right;padding-top:4px">외 '+(list.length-3)+'건 · 일정 탭에서 확인</div>':'')
+    +'</div>';
+}
+function skipAttendEvent(id){
+  var e=events.find(function(x){return x.id===id}); if(!e) return;
+  e.skipAttend=true; save('events',events); showToast('이 일정은 알림에서 뺐어요'); renderHome();
+}
+
+// ── 백업 알림 ──
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function daysSince(iso){if(!iso)return null;return Math.floor((Date.now()-new Date(iso).getTime())/86400000)}
+function getBackupAlert(){
+  var hasData=members.length>0||attendance.length>0||Object.keys(dues).length>0;
+  if(!hasData) return '';
+  var last=lsGet('lastBackup'), change=lsGet('lastChange'), snooze=lsGet('backupSnooze');
+  if(snooze&&new Date(snooze)>new Date()) return '';
+  var d=daysSince(last);
+  if(last&&d<30) return '';
+  if(last&&change&&change<=last) return ''; // 백업 후 바뀐 게 없음
+  var msg=last?'마지막 백업이 <b>'+d+'일 전</b>이에요':'아직 <b>한 번도 백업하지 않았어요</b>';
+  return '<div class="card" style="background:#FFF8E1;border:1px solid #F5D78E">'
+    +'<div style="font-size:14px;font-weight:700;color:#7a5200">💾 데이터 백업할 때가 됐어요</div>'
+    +'<div style="font-size:12px;color:#7a5200;margin-top:4px;line-height:1.6">'+msg+'. 데이터는 이 폰에만 있어서 브라우저를 지우거나 폰을 바꾸면 사라질 수 있어요.</div>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
+    +'<button onclick="backupData()" style="flex:1;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">지금 백업</button>'
+    +'<button onclick="snoozeBackup()" style="padding:10px 14px;background:#fff;color:#7a5200;border:1px solid #F5D78E;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:inherit">7일 뒤에</button>'
+    +'</div></div>';
+}
+function snoozeBackup(){
+  var d=new Date(); d.setDate(d.getDate()+7);
+  try{localStorage.setItem('backupSnooze',d.toISOString())}catch(e){}
+  renderHome();
+}
+function renderBackupInfo(){
+  var el=document.getElementById('backup-last-info'); if(!el) return;
+  var last=lsGet('lastBackup');
+  if(!last){el.innerHTML='<span style="color:var(--red)">⚠️ 아직 백업한 적이 없어요</span>';return}
+  var d=daysSince(last), dt=new Date(last);
+  var label=dt.getFullYear()+'.'+(dt.getMonth()+1)+'.'+dt.getDate();
+  el.innerHTML='<span style="color:'+(d>=30?'var(--red)':'var(--mint)')+'">🕘 마지막 백업: '+label+' ('+(d===0?'오늘':d+'일 전')+')</span>';
+}
+
+// ── 연간 결산 리포트 ──
+function annualYears(){
+  var ys={}; ys[String(new Date().getFullYear())]=1;
+  attendance.concat(expenses,incomes,events).forEach(function(r){if(r.date&&/^\d{4}/.test(r.date))ys[r.date.slice(0,4)]=1});
+  Object.keys(dues).forEach(function(k){var d=dues[k];if(d&&d.date)ys[d.date.slice(0,4)]=1});
+  return Object.keys(ys).sort().reverse();
+}
+function openAnnualReport(){
+  if(!groups.length){showToast('먼저 모임을 추가해 주세요');return}
+  fillGroupSelect('annual-group');
+  var sg=document.getElementById('settle-group');
+  if(sg&&sg.value) document.getElementById('annual-group').value=sg.value;
+  document.getElementById('annual-year').innerHTML=annualYears().map(function(y){return '<option value="'+y+'">'+y+'년</option>'}).join('');
+  var ms=document.getElementById('settle-month-start');
+  if(ms&&ms.value) document.getElementById('annual-year').value=ms.value.slice(0,4);
+  if(!document.getElementById('annual-year').value) document.getElementById('annual-year').selectedIndex=0;
+  openModal('modal-annual');
+  drawAnnualPreview();
+}
+function annualData(gId,year){
+  var g=groups.find(function(x){return x.id===gId});
+  var ms=members.filter(function(m){return m.groupId===gId});
+  var recs=attendance.filter(function(r){return r.groupId===gId&&r.date.slice(0,4)===year}).sort(function(a,b){return a.date.localeCompare(b.date)});
+  var rows=ms.map(function(m){
+    var c=recs.filter(function(r){return r.present.indexOf(m.id)>=0}).length;
+    return {name:m.name,cnt:c,rate:recs.length?Math.round(c/recs.length*100):0};
+  }).sort(function(a,b){return b.cnt-a.cnt||a.name.localeCompare(b.name,'ko')});
+  var totalPresent=recs.reduce(function(s,r){return s+r.present.length},0);
+  var best=recs.slice().sort(function(a,b){return b.present.length-a.present.length||a.date.localeCompare(b.date)})[0]||null;
+  // 회비 수입: 납부일 기준, 다개월 납부는 한 번만 (결산 요약과 같은 방식)
+  var seen={}, duesIn=0;
+  ms.forEach(function(m){
+    Object.keys(dues).forEach(function(k){
+      if(k.indexOf(m.id+'_')!==0) return;
+      var d=dues[k]; if(!d||!d.paid||d.exempt||!d.date||d.date.slice(0,4)!==year) return;
+      var key=m.id+'|'+d.date; if(seen[key]) return; seen[key]=1;
+      duesIn+=(d.months||1)*(g?g.dues:0);
+    });
+  });
+  var extraIn=incomes.filter(function(i){return i.groupId===gId&&(i.date||'').slice(0,4)===year}).reduce(function(s,i){return s+i.amount},0);
+  var gExp=expenses.filter(function(e){return e.groupId===gId&&(e.date||'').slice(0,4)===year});
+  var exp=gExp.reduce(function(s,e){return s+e.amount},0);
+  return {
+    g:g,year:year,recs:recs,rows:rows,members:ms.length,
+    nJ:recs.filter(function(r){return r.type!=='번개'}).length,
+    nB:recs.filter(function(r){return r.type==='번개'}).length,
+    totalPresent:totalPresent,
+    active:rows.filter(function(x){return x.cnt>0}).length,
+    perfect:recs.length?rows.filter(function(x){return x.cnt===recs.length}).map(function(x){return x.name}):[],
+    regions:regionStats(recs).filter(function(x){return x.region!=='미입력'}),
+    best:best,duesIn:duesIn,extraIn:extraIn,exp:exp,expCount:gExp.length
+  };
+}
+function drawAnnualCanvas(d){
+  var W=1080, P=56, F="'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
+  var NAVY='#1B3A6B', TEXT='#1a1a2e', SUB='#6b7280', LINE='#e5e7eb';
+  var top3=d.rows.filter(function(x){return x.cnt>0}).slice(0,3);
+  var reg3=d.regions.slice(0,3);
+  // 레이아웃 높이 계산
+  var secs=[];
+  if(top3.length) secs.push({k:'top',h:124+top3.length*92});
+  if(reg3.length) secs.push({k:'reg',h:124+reg3.length*92});
+  var hl=[]; if(d.best) hl.push(1); if(d.perfect.length) hl.push(1);
+  if(hl.length) secs.push({k:'hl',h:118+hl.length*62});
+  secs.push({k:'money',h:340});
+  var H=360+200+40+secs.reduce(function(s,x){return s+x.h+28},0)+90;
+  var c=document.createElement('canvas'); c.width=W; c.height=H;
+  var x=c.getContext('2d');
+  function rr(X,Y,w,h,r,fill){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath();x.fillStyle=fill;x.fill()}
+  function t(str,X,Y,size,color,weight,align){x.font=(weight||400)+' '+size+'px '+F;x.fillStyle=color;x.textAlign=align||'left';x.textBaseline='alphabetic';x.fillText(str,X,Y)}
+  function fit(str,max,size,weight){x.font=(weight||400)+' '+size+'px '+F;if(x.measureText(str).width<=max)return str;while(str.length>1&&x.measureText(str+'…').width>max)str=str.slice(0,-1);return str+'…'}
+  x.fillStyle='#F4F6FA'; x.fillRect(0,0,W,H);
+  // 헤더
+  x.fillStyle=NAVY; x.fillRect(0,0,W,360);
+  t(d.year+' 연간 결산',P,110,40,'rgba(255,255,255,.75)',500);
+  t(fit(d.g.name,W-P*2,72,800),P,200,72,'#fff',800);
+  t('함께해 주셔서 감사합니다 🙏',P,270,34,'rgba(255,255,255,.85)',400);
+  // 숫자 카드
+  var stats=[[d.recs.length+'회','총 모임'],[d.nJ+' / '+d.nB,'정모 / 번개'],[d.totalPresent+'명','연인원'],[d.active+'/'+d.members,'참여 회원']];
+  var cw=(W-P*2-3*16)/4, y=310;
+  stats.forEach(function(s,i){
+    var X=P+i*(cw+16); rr(X,y,cw,200,24,'#fff');
+    t(s[0],X+cw/2,y+105,s[0].length>6?46:54,NAVY,800,'center');
+    t(s[1],X+cw/2,y+160,28,SUB,500,'center');
+  });
+  y+=240;
+  secs.forEach(function(sec){
+    rr(P,y,W-P*2,sec.h,28,'#fff');
+    var X=P+40, R=W-P-40, yy=y+70;
+    if(sec.k==='top'){
+      t('🏆 참석왕 TOP '+top3.length,X,yy,38,TEXT,800); yy+=30;
+      var medals=['🥇','🥈','🥉'];
+      top3.forEach(function(r,i){
+        yy+=70; t(medals[i],X,yy,48,TEXT,400);
+        t(fit(r.name,420,40,700),X+80,yy-4,40,TEXT,700);
+        t(r.cnt+'회 · '+r.rate+'%',R,yy-4,36,i===0?'#B45309':SUB,700,'right');
+        yy+=22; if(i<top3.length-1){x.fillStyle=LINE;x.fillRect(X,yy-2,R-X,2)}
+      });
+    } else if(sec.k==='reg'){
+      t('📍 많이 간 지역 TOP '+reg3.length,X,yy,38,TEXT,800); yy+=30;
+      var max=reg3[0].count, cols=['#1B3A6B','#4A7BC0','#93B2DE'];
+      reg3.forEach(function(r,i){
+        yy+=56; t(fit(r.region,520,36,700),X,yy,36,TEXT,700);
+        t(r.count+'회',R,yy,34,SUB,700,'right');
+        yy+=16; rr(X,yy,R-X,14,7,'#EEF1F6'); rr(X,yy,Math.max(28,(R-X)*r.count/max),14,7,cols[i]);
+        yy+=20;
+      });
+    } else if(sec.k==='hl'){
+      t('✨ 올해의 기록',X,yy,38,TEXT,800); yy+=8;
+      if(d.best){var bp=d.best.date.split('-');yy+=62;t(fit('가장 많이 모인 날 · '+parseInt(bp[1])+'월 '+parseInt(bp[2])+'일 '+(d.best.region||d.best.title||'')+' ('+d.best.present.length+'명)',R-X,32,500),X,yy,32,TEXT,500)}
+      if(d.perfect.length){yy+=62;t(fit('🏅 개근 · '+d.perfect.join(', '),R-X,32,700),X,yy,32,'#B45309',700)}
+    } else if(sec.k==='money'){
+      t('💰 회계',X,yy,38,TEXT,800);
+      var rows=[['회비 수입','+'+d.duesIn.toLocaleString()+'원','#1D9E75'],['기타 수입','+'+d.extraIn.toLocaleString()+'원','#1D9E75'],['지출 ('+d.expCount+'건)','-'+d.exp.toLocaleString()+'원','#E53935']];
+      rows.forEach(function(r){yy+=50;t(r[0],X,yy,32,SUB,500);t(r[1],R,yy,32,r[2],700,'right')});
+      yy+=24; x.fillStyle=LINE; x.fillRect(X,yy,R-X,2); yy+=46;
+      var net=d.duesIn+d.extraIn-d.exp;
+      t('올해 수지',X,yy,34,TEXT,800); t((net>=0?'+':'')+net.toLocaleString()+'원',R,yy,38,net>=0?'#1D9E75':'#E53935',800,'right');
+    }
+    y+=sec.h+28;
+  });
+  var now=new Date();
+  t('총무앱 · '+now.getFullYear()+'.'+(now.getMonth()+1)+'.'+now.getDate()+' 생성',W/2,H-40,26,SUB,400,'center');
+  return c;
+}
+var lastAnnualCanvas=null;
+function drawAnnualPreview(){
+  var gId=document.getElementById('annual-group').value, year=document.getElementById('annual-year').value;
+  if(!gId||!year) return;
+  var d=annualData(gId,year);
+  var box=document.getElementById('annual-preview');
+  if(!d.recs.length&&!d.duesIn&&!d.extraIn&&!d.exp){
+    lastAnnualCanvas=null;
+    box.innerHTML='<div style="text-align:center;padding:28px;color:var(--text2);font-size:13px;background:var(--bg);border-radius:var(--radius-sm)">'+year+'년에 기록된 모임·회계 데이터가 없어요</div>';
+    return;
+  }
+  lastAnnualCanvas=drawAnnualCanvas(d);
+  box.innerHTML='<img src="'+lastAnnualCanvas.toDataURL('image/png')+'" style="width:100%;border-radius:10px;border:1px solid var(--border)" alt="연간 결산 리포트">';
+}
+function saveAnnualImage(){
+  if(!lastAnnualCanvas){showToast('저장할 리포트가 없어요');return}
+  var g=groups.find(function(x){return x.id===document.getElementById('annual-group').value});
+  var a=document.createElement('a');
+  a.download=(g?g.name:'모임')+'_'+document.getElementById('annual-year').value+'_연간결산.png';
+  a.href=lastAnnualCanvas.toDataURL('image/png'); a.click();
+  showToast('이미지가 저장됐어요! 🎉 카톡에 공유해 보세요');
+}
+
+// ── 결산 공지: 다가오는 일정 (N개월) ──
+function upcomingScheduleItems(gId,ymEnd,nMonths){
+  var today=new Date().toISOString().slice(0,10);
+  // 시작 월 = 결산 종료월 다음 달 (단, 지난 달을 결산하는 경우엔 이번 달부터)
+  var d=new Date(ymEnd+'-01'); d.setMonth(d.getMonth()+1);
+  var startYM=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  if(startYM<thisYM()) d=new Date(thisYM()+'-01');
+  var months=[];
+  for(var i=0;i<nMonths;i++){months.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));d.setMonth(d.getMonth()+1);}
+  var DOW=['일','월','화','수','목','금','토'];
+  function dow(ds){var p=ds.split('-');return DOW[new Date(+p[0],+p[1]-1,+p[2]).getDay()]}
+  var items=[];
+  events.forEach(function(e){
+    if(e.groupId!==gId||e.done||!e.date||e.date<today) return;
+    if(months.indexOf(e.date.slice(0,7))<0) return;
+    var extra=[]; if(e.time) extra.push(e.time); if(e.region) extra.push(e.region); if(e.place) extra.push(e.place);
+    items.push({date:e.date,text:e.title+(extra.length?' ('+extra.join(' · ')+')':'')});
+  });
+  anniversaries.forEach(function(a){
+    if(!(a.groupId===gId||a.groupId==='all')||!a.date) return;
+    var mm=a.date.startsWith('--')?a.date.slice(2,4):a.date.split('-')[1];
+    var dd=a.date.startsWith('--')?a.date.slice(5,7):a.date.split('-')[2];
+    months.forEach(function(ym){
+      if(ym.slice(5,7)!==mm) return;
+      var ds=ym+'-'+dd; if(ds<today) return;
+      items.push({date:ds,text:'🎉 '+a.title+(a.memo?' ('+a.memo+')':'')});
+    });
+  });
+  items.sort(function(a,b){return a.date.localeCompare(b.date)});
+  items.forEach(function(it){it.dow=dow(it.date)});
+  var m1=parseInt(months[0].slice(5,7)), m3=parseInt(months[months.length-1].slice(5,7));
+  return {items:items,label:m1+'월 ~ '+m3+'월',multi:new Set(items.map(function(i){return i.date.slice(0,7)})).size>1};
+}
+// ── 결산 공지: 참석률 (기간 + 누적) ──
+function attendNoticeLines(g,ymStart,ymEnd){
+  var per=settleAttendData(g,ymStart,ymEnd);
+  var all=settleAttendData(g,'0000-00',ymEnd); // 종료월까지 전체 기록
+  var L=[];
+  if(!all.recs.length) return L;
+  L.push('','━━━━━━━━━━━━━━━━');
+  var firstD=all.recs[0].date.split('-');
+  var since=firstD[0]+'.'+parseInt(firstD[1])+'.'+parseInt(firstD[2]);
+  var cumMap={}; all.rows.forEach(function(x){cumMap[x.m.id]=x});
+  var showCum=all.recs.length>per.recs.length;
+  if(per.recs.length){
+    L.push('✅ 모임 현황 (정모 '+per.nJ+' · 번개 '+per.nB+' · 평균 '+per.avg+'명 참석)');
+    var rl=regionTextLines(per.recs);
+    if(rl.length){L.push('📍 모임 지역');rl.forEach(function(l){L.push(l)});}
+    if(per.perfect.length) L.push('🏅 개근: '+per.perfect.join(', '));
+    L.push('');
+    L.push('📊 참석률 (이번 기간 '+per.recs.length+'회'+(showCum?' / 누적 '+since+'~ '+all.recs.length+'회':'')+')');
+    per.rows.forEach(function(x,i){
+      var c=cumMap[x.m.id];
+      L.push((i+1)+'. '+x.m.name+' '+x.cnt+'/'+per.recs.length+'회 ('+x.rate+'%)'+(showCum&&c?' · 누적 '+c.rate+'%':''));
+    });
+  } else {
+    L.push('📊 누적 참석률 ('+since+' ~ · 총 '+all.recs.length+'회)');
+    L.push('※ 이번 결산 기간에는 모임 기록이 없어요');
+    all.rows.forEach(function(x,i){L.push((i+1)+'. '+x.m.name+' '+x.cnt+'/'+all.recs.length+'회 ('+x.rate+'%)')});
+  }
+  return L;
+}
+
 // ── 결산: 참석·지역 ──
 var lastSettleAttendText='';
 function settleAttendData(g,ymStart,ymEnd){
@@ -3089,10 +3445,35 @@ function settleAttendData(g,ymStart,ymEnd){
 }
 function renderSettleAttend(g,ymStart,ymEnd){
   var d=settleAttendData(g,ymStart,ymEnd);
+  var cum=settleAttendData(g,'0000-00',ymEnd);
+  var cumMap={}; cum.rows.forEach(function(x){cumMap[x.m.id]=x});
+  var showCum=cum.recs.length>d.recs.length;
+  var cumSince=cum.recs.length?fmtYMD(cum.recs[0].date):'';
   var period=ymLabel(ymStart)+(ymStart===ymEnd?'':' ~ '+ymLabel(ymEnd));
   var el=document.getElementById('settle-content');
+  if(!d.recs.length&&cum.recs.length){
+    // 이번 기간 기록은 없지만 과거 기록이 있으면 누적 참석률 표시
+    var ch='<div class="card" style="font-size:13px;color:var(--text2);text-align:center">'+period+'에는 기록된 모임이 없어서<br><b style="color:var(--text)">'+cumSince+'부터의 누적 참석률</b>을 보여드려요</div>';
+    ch+='<div class="card"><div style="font-size:15px;font-weight:700;margin-bottom:6px">📊 누적 참석률 <span style="font-size:12px;color:var(--text2);font-weight:400">총 '+cum.recs.length+'회</span></div>';
+    ch+=cum.rows.map(function(x){
+      var c=x.rate>=70?'var(--mint)':x.rate>=40?'var(--amber)':'var(--red)';
+      return '<div style="padding:9px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;align-items:baseline">'
+        +'<span style="font-size:14px;font-weight:700">'+escHtml(x.m.name)+'</span>'
+        +'<span style="font-size:13px;color:var(--text2)">'+x.cnt+' / '+cum.recs.length+'회 · <b style="color:'+c+'">'+x.rate+'%</b></span></div>'
+        +'<div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:'+x.rate+'%;background:'+c+'"></div></div></div>';
+    }).join('')+'</div>';
+    ch+=regionCardHtml(cum.recs,'📍 그동안 모임한 지역 (누적)');
+    var ct=['📊 ['+g.name+'] 누적 참석률 ('+cumSince+' ~ · 총 '+cum.recs.length+'회)','━━━━━━━━━━━━━━━━'];
+    cum.rows.forEach(function(x,i){ct.push((i+1)+'. '+x.m.name+' '+x.cnt+'/'+cum.recs.length+'회 ('+x.rate+'%)')});
+    var crl=regionTextLines(cum.recs); if(crl.length){ct.push('','📍 모임 지역');ct=ct.concat(crl);}
+    lastSettleAttendText=ct.join('\n');
+    ch+='<button onclick="copySettleAttend()" class="btn-primary">📋 누적 참석률 카톡용 복사</button>';
+    ch+='<button onclick="openAnnualReport()" style="width:100%;padding:14px;background:#FFF3E0;color:#B45309;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:8px">🎉 연간 결산 리포트 이미지 만들기</button>';
+    el.innerHTML=ch; return;
+  }
   if(!d.recs.length){
-    el.innerHTML='<div class="card" style="text-align:center;padding:28px 12px;color:var(--text2);font-size:13px">'+period+'에 기록된 정모·번개가 없어요<br>일정 → ✅ 참석 탭에서 기록을 추가해 주세요</div>';
+    el.innerHTML='<div class="card" style="text-align:center;padding:28px 12px;color:var(--text2);font-size:13px">'+period+'에 기록된 정모·번개가 없어요<br>일정 → ✅ 참석 탭에서 기록을 추가해 주세요</div>'
+      +'<button onclick="openAnnualReport()" style="width:100%;padding:14px;background:#FFF3E0;color:#B45309;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer">🎉 연간 결산 리포트 이미지 만들기</button>';
     lastSettleAttendText='';return;
   }
   function rateColor(r){return r>=70?'var(--mint)':r>=40?'var(--amber)':'var(--red)'}
@@ -3103,7 +3484,7 @@ function renderSettleAttend(g,ymStart,ymEnd){
     +stat('총 모임',d.recs.length+'회')+stat('정모 / 번개',d.nJ+' / '+d.nB)+stat('평균 참석',d.avg+'명')+stat('평균 참석률',d.avgRate+'%')
     +'</div></div>';
   // 회원별 참석률
-  html+='<div class="card"><div style="font-size:15px;font-weight:700;margin-bottom:6px">📊 회원별 참석률</div>';
+  html+='<div class="card"><div style="font-size:15px;font-weight:700;margin-bottom:6px">📊 회원별 참석률'+(showCum?' <span style="font-size:12px;color:var(--text2);font-weight:400">아래 작은 글씨는 '+cumSince+'부터 누적</span>':'')+'</div>';
   html+=d.rows.map(function(x){
     var c=rateColor(x.rate);
     var medal=(d.perfect.indexOf(x.m.name)>=0)?' 🏅':'';
@@ -3111,7 +3492,9 @@ function renderSettleAttend(g,ymStart,ymEnd){
       +'<div style="display:flex;justify-content:space-between;align-items:baseline">'
       +'<span style="font-size:14px;font-weight:700">'+escHtml(x.m.name)+medal+'</span>'
       +'<span style="font-size:13px;color:var(--text2)">'+x.cnt+' / '+d.recs.length+'회 · <b style="color:'+c+'">'+x.rate+'%</b></span></div>'
-      +'<div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:'+x.rate+'%;background:'+c+'"></div></div></div>';
+      +'<div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:'+x.rate+'%;background:'+c+'"></div></div>'
+      +((showCum&&cumMap[x.m.id])?'<div style="font-size:11px;color:var(--text2);margin-top:4px;text-align:right">누적 '+cumMap[x.m.id].cnt+'/'+cum.recs.length+'회 ('+cumMap[x.m.id].rate+'%)</div>':'')
+      +'</div>';
   }).join('');
   html+='</div>';
   // 지역별
@@ -3130,12 +3513,13 @@ function renderSettleAttend(g,ymStart,ymEnd){
     '• 총 '+d.recs.length+'회 (정모 '+d.nJ+' / 번개 '+d.nB+')',
     '• 평균 참석 '+d.avg+'명 (참석률 '+d.avgRate+'%)'];
   if(d.perfect.length) tl.push('• 🏅 개근: '+d.perfect.join(', '));
-  tl.push('','📊 참석률');
-  d.rows.forEach(function(x,i){tl.push((i+1)+'. '+x.m.name+' '+x.cnt+'/'+d.recs.length+'회 ('+x.rate+'%)')});
+  tl.push('','📊 참석률'+(showCum?' (누적: '+cumSince+'~ '+cum.recs.length+'회)':''));
+  d.rows.forEach(function(x,i){var cc=cumMap[x.m.id];tl.push((i+1)+'. '+x.m.name+' '+x.cnt+'/'+d.recs.length+'회 ('+x.rate+'%)'+(showCum&&cc?' · 누적 '+cc.rate+'%':''))});
   var rl=regionTextLines(d.recs);
   if(rl.length){tl.push('','📍 모임 지역');tl=tl.concat(rl);}
   lastSettleAttendText=tl.join('\n');
   html+='<button onclick="copySettleAttend()" class="btn-primary">📋 참석·지역 결산 카톡용 복사</button>';
+  html+='<button onclick="openAnnualReport()" style="width:100%;padding:14px;background:#FFF3E0;color:#B45309;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:8px">🎉 연간 결산 리포트 이미지 만들기</button>';
   el.innerHTML=html;
 }
 function copySettleAttend(){
